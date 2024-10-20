@@ -1,0 +1,729 @@
+/* 
+    Document   : screen
+    Created on : 19-Jul-2010, 11:42:46 AM
+    Author     : Umair
+    Description:
+        Styles for booking module
+*/
+
+
+/* BOOKING INFO BAR STYLES */
+
+@media print {
+    #topHeader {
+        height: 25px;
+        padding: 10px 20px 15px;
+        width: 868px;
+        margin: -38px auto 0;
+    }
+    .bookings-grid #t1title {
+        text-align: center;
+        font-size: 1.6em;
+        padding-bottom: 10px;
+        margin: 0 0 0 5px;
+        width: 1191px;
+    }
+    #topHeader #cv_today, #topHeader #cv_time {
+        display: none;
+    }
+}
+@media screen {
+.scheduling-module.bookings-grid #top, .scheduling-module.bookings-grid #bottom{display: none;}
+.scheduling-module.bookings-grid #wrapper_content.beige_bg > #body{background: none;border: 0;}
+.scheduling-module.bookings-grid #wrapper_content #zoomBox{right: -40px;}
+    
+#booking-info {
+    width:1190px;
+    padding: 0 26px;
+}
+#booking-info-left {
+    float:left;
+    width:20%;
+}
+#booking-info-right {
+    float:right;
+    width:71%;
+}
+
+
+/* TEMP BOOKING TIMER STYLES */
+#booking-info #timer {
+    color: #cc6600;
+    float:right;
+}
+
+/* BOOKING FORM STYLES */
+
+.yui-skin-sam #bookingPlayers .yui-ac-content {
+    margin-top: 2px;
+    overflow-y: auto;
+    width: 100%;
+}
+.yui-skin-sam #bookingPlayers .yui-ac-content li {
+    width: 195px;
+}
+.yui-skin-sam #bookingPlayers .yui-ac-input {
+    width: 260px;
+    position: static;
+    padding: 5px;
+}
+div.autocomplete {
+    height: 25px;
+    vertical-align: top;
+}
+input.placeholder {
+    color: gray;
+}
+
+#bookingPlayers ul li input[type=text] {
+    border: 1px solid #ccc;
+    padding:3px;
+}
+#bookingPlayers ul li input:focus {
+    border-color:#aaa;
+}
+#bookingPlayers ul li span.notice {
+    display:inline-block;
+    *display:block;
+    *float:left;
+    height:19px;
+    width: 19px;
+    margin:0;
+    padding:0;
+    vertical-align:top;
+    margin-left:15px;
+}
+#bookingPlayers ul li span.error {
+    background: url(/r/img/core/check.png) no-repeat 0 -30px;
+}
+#bookingPlayers ul li span.valid {
+    background: url(/r/img/core/check.png) no-repeat 0 0px;
+}
+
+/* Booking Confirmation Styles */
+
+.confTitle {
+    font-size: 14px;
+    color: #666;
+    margin: 10px auto 30px;
+    text-align:center;
+}
+.booking {
+/*    padding: 10px 0 20px;*/
+}
+.bookingTitle {
+    color:#444;
+}
+.booking ul.info {
+    margin-bottom: 25px;
+}
+.booking ul.info li {
+    margin-bottom:5px;
+}
+
+.booking ul.info li > * {
+    *display:inline;
+    *zoom:1;
+    display:inline-block;
+    vertical-align: top;
+}
+.booking ul.info li span.lbl {
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.booking .bookerInfo {
+    font-size: 12px;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    color: #666;
+}
+
+ul.booking-changes li {
+    margin-bottom: 5px;
+}
+
+#availableParticipants .row .pName{font-size: 16px;color: #5B5B5B;}
+#invitersTable .row .proPic{width: 50px;}
+#invitersTable .row .pName{width: 218px;font-size: 17px;color: #474747;}
+#invitersTable .row .userDetails{width: 780px;}
+#invitersTable .row .userDetails .topDetails > div{display: table-cell;}
+#invitersTable .row .userDetails .topDetails .date{width: 200px;}
+#invitersTable .row .userDetails .topDetails .club{width: 100px;}
+#invitersTable .row .userDetails .topDetails .phone{width: 100px;}
+#invitersTable .row .userDetails .topDetails .email{width: 200px;}
+#invitersTable .row .userDetails .topDetails .level{width: 50px;}
+#invitersTable .row .courtInfo{margin: 12px 0 0 200px;font-size: 11px;}
+#invitersTable .row > div{display: table-cell;padding: 5px;float: left;}
+
+#frmMultipleReserve .courts-settings .sports{float: left;}
+#frmMultipleReserve .courts-settings .sports .sport{text-align: center;padding: 5px 0;}
+#frmMultipleReserve .courts-settings .sports .cntSSC{float: left;margin: 10px 34px 0 0;}
+#frmMultipleReserve .courts-settings .sports .sub-sport{background: #E3E3E3;width: 220px;padding: 5px 10px;text-align: center;}
+#frmMultipleReserve .courts-settings .sports .courts{padding: 1px 0 1px 0;float: left;}
+#frmMultipleReserve .courts-settings .sports .courts .court{width:180px;float:left;}
+
+.del-icon{background: url("/r/img/core/icons.png") no-repeat scroll 0 -214px transparent;cursor: pointer;height: 13px;margin-left: 4px;overflow: hidden;width: 12px;}
+
+.table2{background: none repeat scroll 0 0 white;border: 1px solid #CCCCCC;border-radius: 3px 3px 3px 3px;padding: 5px;width: 100%;}
+.table2 .rowHead{width: 100%;}
+.table2 .rowHead > div{float: left;background-color: #649506;color: white;font-size: 1em;font-weight: bold;padding: 9px 0 9px 9px;text-align: left;}
+.table2 .rowData{float: left;width: 100%;border-top: 1px solid #EEEEEE;}
+.table2 .rowData .innerData{float: left;width: 100%;}
+.table2 .rowData .innerData > div{float: left;padding: 9px 0 9px 9px;}
+/*.table2 .rowHead .col1, .table2 .rowData .innerData .col1{width: 10%;}*/
+.table2 .rowHead .col2, .table2 .rowData .innerData .col2{width: 55%;}
+.table2 .rowHead .col3, .table2 .rowData .innerData .col3{width: 20%;}
+.table2 .rowHead .col4, .table2 .rowData .innerData .col4{width: 20%;}
+.table2 .rowData .innerData .col4 > *{display: inline-block;}
+
+.sched_add{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -5px -78px transparent;height: 17px;width: 16px;display: inline-block;}
+.sched_add_sport{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -35px -4px transparent;height: 16px;width: 16px;display: inline-block;}
+.sched_add_court{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -35px -28px transparent;height: 17px;width: 16px;display: inline-block;}
+.sched_add_court_group{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -7px -100px transparent;height: 17px;width: 16px;display: inline-block;}
+.sched_status_active{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -5px -3px transparent;height: 16px;width: 16px;display: inline-block;}
+.sched_status_disabled{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -5px -29px transparent;height: 16px;width: 16px;display: inline-block;}
+.sched_delete{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -5px -55px transparent;height: 16px;width: 16px;opacity: 0.8;display: inline-block;}
+.sched_edit{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -34px -53px transparent;height: 16px;width: 16px;display: inline-block;}
+.sched_copy{ background: url("/r/img/scheduling/icons.png") no-repeat scroll -34px -102px transparent;height: 16px;width: 18px;display: inline-block;}
+.book_error {color:#666666;}
+.book_error .oops {background: url("/r/img/scheduling/oops.png") no-repeat scroll 87px center transparent;height: 115px;width: 250px;}
+.book_error .content p{margin: 0 0 20px;}
+
+.input_mins {width:50px;}
+
+
+
+/*-------------monthview-----------------*/
+#schedBody #dateSwitcher {
+    margin: 18px auto;
+    height: 30px;
+    width:100%; /* IE8 issue with float and top margin */
+    float:left; /* IE8 issue with float and top margin */
+    text-align: center;
+    *width: 600px;
+    position:relative;
+}
+#schedBody #dateSwitcher a.ds-arrows {
+    margin: 0 20px;
+    text-indent: -1000px;
+    display:inline-block;
+    overflow:hidden;
+    width: 20px;
+    height: 20px;
+    *display:block; /*for IE7 since it doesnt support inline-block */
+    *float:left;
+}
+#schedBody #dateSwitcher a.icon_date {
+    text-indent:0px;
+    width:auto;
+    position:absolute;
+    left: 0px;
+    *left: -130px;
+    top: 3px;
+    margin-left:0;
+    color:#555;
+}
+
+#schedBody #dateSwitcher span#dateTitle {
+    font-size: 20px;
+    font-weight:bold;
+    min-width: 275px;
+    display:inline-block;
+    *display:block;
+    *height:25px;
+    *padding-top: 4px;
+    *float:left;
+}
+
+#schedBody #dateSwitcher #calContainer {
+    top:25px;
+    position:absolute;
+    z-index: 100;
+}
+
+#schedBody #dateSwitcher #left {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 0;
+}
+
+#schedBody #dateSwitcher #right {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -44px;
+}
+
+#schedBody #dateSwitcher #left:hover {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -66px;
+}
+
+#schedBody #dateSwitcher #right:hover {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -22px;
+}
+
+/*---*/
+#schedBody #courtSwitcher {
+    margin: 18px auto;
+    height: 30px auto;
+    overflow: auto;
+    width: 100%; /* IE8 issue with float and top margin */
+    float:left; /* IE8 issue with float and top margin */
+    text-align: center;
+    *width: 600px;
+    position:relative;
+}
+#schedBody #courtSwitcher a.ds-arrows {
+    margin: 0 20px;
+    text-indent: -1000px;
+    display:inline-block;
+    overflow:hidden;
+    width: 20px;
+    height: 20px;
+    *display:block; /*for IE7 since it doesnt support inline-block */
+    *float:left;
+}
+#schedBody #courtSwitcher a.icon_date {
+    text-indent:0px;
+    width:auto;
+    position:absolute;
+    left: 0px;
+    *left: -130px;
+    top: 3px;
+    margin-left:0;
+    color:#555;
+}
+
+#schedBody #courtSwitcher span#courtTitle {
+    font-size: 15px;
+    min-width: 55px;
+    display:inline-block;
+    *display:block;
+    *height:25px;
+    *padding-top: 4px;
+    *float:left;
+}
+
+#schedBody #courtSwitcher #calContainer {
+    top:25px;
+    position:absolute;
+    z-index: 100;
+}
+
+#schedBody #courtSwitcher #left {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 0;
+}
+
+#schedBody #courtSwitcher #right {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -44px;
+}
+
+#schedBody #courtSwitcher #left:hover {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -66px;
+}
+
+#schedBody #courtSwitcher #right:hover {
+				background: url(/r/img/cne/date_switcher_arrows.png) no-repeat 0 -22px;
+}
+/*---*/
+
+
+#schedBody .sched-calendar .calheader {
+				height: 3em;
+}
+#schedBody .sched-calendar td.caltime {
+    text-align:center;
+    font-size: 1.2em !important;
+    color: #333333;
+    height: 25px !important;
+}
+#schedBody .sched-calendar .calnavleft {
+				left: 0;
+				margin-top: 3px;
+}
+
+#schedBody .sched-calendar .calnavright {
+				right: 0;
+				margin-top: 3px;
+}
+
+#schedBody .sched-calendar a.calnav {
+				margin-top: 200px;
+				position: relative;
+				height: 100px;
+				display: none;
+}
+
+#schedBody .sched-calendar {
+				border-bottom: 1px;
+                                width: 100%;
+}
+
+#schedBody .sched-calendar .calweekdaycell {
+				background: #4F4F4F;
+				border-right: 0px !important;/*solid #999;*/
+				color: #666;
+				font-size: small;
+				text-align: left;
+				width: 122.6px;
+				padding-top: 10px !important;
+				padding-bottom: 10px !important;
+				padding-left: 30px !important;
+}
+#schedBody .sched-calendar th.calweekdaycell a, #schedBody .sched-calendar th.calweekdaycell { 
+				color: #fff;
+}
+
+#schedBody table#calendar td {
+				vertical-align:top;
+				background: #f6f3db;
+				border-bottom: 1px solid #fff; 
+				font-size: 1.0em;
+				/*height: 100px;*/
+}
+
+#schedBody table#calendar tbody tr.calcell {
+				padding-bottom: 0px !important;
+}
+
+#schedBody table#calendar td .day {
+				padding: 10px 10px;
+				
+				text-align: right;
+				background: #E1EBF1;
+}
+
+#schedBody .sched-calendar td .cal-Date {
+    display:block;
+    text-align: right;
+    padding: 2px 5px;
+}
+/* for todays date */
+#schedBody .sched-calendar td.today .cal-Date {
+    font-weight:bold;
+    font-size: 11px;
+}
+
+#schedBody .sched-calendar td .cmonth {
+    background: #f5eea270;
+}
+#schedBody .sched-calendar td .nmonth {
+    margin-top: -15px;
+}
+#schedBody .sched-calendar td ul {
+    width: 99%;
+    margin: 3px auto 10px auto;
+}
+#schedBody .sched-calendar  ul li, /*#schedBody .sched-calendar td*/ div.monthViewItem {
+    border-top: 1px solid #ffffff;
+    padding:8px 0;
+}
+#schedBody .sched-calendar td ul li:first-child, #schedBody .sched-calendar td div.monthViewItem:first-child {
+    border-top:none;
+}
+
+#schedBody .sched-calendar th.calhead {}
+
+/* "prop" the td element open for IE6 compat (no min-height) */
+
+#schedBody table#calendar td .prop {
+				height: 80px;
+				float: right;
+				width: 1px
+}
+
+#schedBody table#calendar td.today {
+				background: #f6f3db;
+}
+
+#schedBody table#calendar td.today .day {
+				font-weight: bold;
+				background: #D1DBE1;
+}
+
+#schedBody table#calendar td.notthismonth {
+				color: #AAA;
+				background: #FFF;
+				border-right: 1px solid #CCC;
+				border-bottom: 1px solid #CCC;
+}
+
+#schedBody table#calendar td.notthismonth .day {
+				background: #F1F1F1;
+}
+
+#schedBody table#calendar td hr {
+				border: 0;
+				color: #DDD;
+				background-color: #DDD;
+				height: 1px;
+}
+
+#schedBody table#legend {
+				border: 1px solid #AAA;
+				text-align: center;
+				padding: 10px 10px 10px 10px;
+				background-color: #FFFFFF;
+				color: #777;
+}
+
+#schedBody table#calendar tbody td {
+    padding: 0; 
+}
+
+#schedBody .sched-calendar td.calcell.calcellhover {
+				color: black !important;
+}
+
+#schedBody .sched-calendar a {
+				color: #000;
+}
+#schedBody .sched-calendar th a {
+    color: #fff;
+}
+#schedBody .sched-calendar td.calcell a:hover {
+				color: #333;
+}
+
+#schedBody .sched-calendar td.calcell .monthViewItem {
+				width: 120px;
+				line-height: 1.4em;
+				white-space: normal;
+}
+
+#schedBody .sched-calendar td.calcell .monthViewItem a {
+				text-align: left;
+				background: none;
+				padding: 0;
+				margin: 0;
+				height: auto;
+				word-wrap: break-word;
+}
+
+#schedBody .draft a span {
+    color:blue;
+    font-weight:bold;
+}
+#schedBody .closed a span {
+    color:gray;
+    font-weight:bold;
+}
+#schedBody .sched-calendar .cancelled a {
+				color: red;
+				font-weight: bold;
+}
+
+#schedBody .upcoming a span {
+				color: #06c;
+				font-weight: bold;
+}
+
+#schedBody .available a span {
+				color: rgb(64, 159, 16);
+				font-weight: bold;
+}
+
+#schedBody .sched-calendar td.calcell .monthViewItem a:hover {
+				text-align: left;
+				background: none;
+				text-decoration: underline;
+}
+/*-------------monthview ends------------*/
+
+/* ----------booking form----------------*/
+
+#bookingForm input{border: 1px solid #CCCCCC;padding: 5px;}
+#bookingForm select{border: 1px solid #CCCCCC;padding: 4px;}
+#bookingForm .radio-block{display: inline-block;}
+#bookingForm .radio-block > *{vertical-align: middle;}
+#bookingForm .radio-block label{margin-left: 3px;}
+#bookingForm fieldset{background: transparent;border: none;}
+#bookingForm fieldset ul li span.misc-text{margin-top: 0;}
+#bookingForm fieldset ul li label, #bookingForm fieldset ul li span.lbl{text-align: right;margin: 0 6px 0 0;}
+#bookingForm fieldset ul li.valign > *{vertical-align: middle;}
+#bookingForm .owner-block{height:20px;padding:10px 0;}
+#bookingForm .owner-block label{margin: 0 6px 0 0;text-align: right;min-width: 115px;color: #555555;font-weight: bold;display: inline-block;}
+#bookingForm .owner-block .yui-ac{position: relative; width: 18em; font-size: 100%;display: inline-block;}
+#bookingForm .owner-block .yui-ac input{vertical-align: middle; width: 260px;padding: 5px;position: static;}
+#bookingForm .email-players-block div{margin-left:120px;}
+#bookingForm fieldset ul li .autocomplete{margin-left:4px;}
+#bookingForm .error{margin-top: 14px;padding-left: 125px;}
+#bookingForm fieldset{margin: 0 0 10px;padding: 10px 23px 10px 27px;}
+#bookingForm fieldset ul li.res_types_list{vertical-align: top;width: 120px;margin-right: 0 !important;padding-left: 20px;padding-bottom: 10px;}
+#bookingForm fieldset ul li.res_types_list input{margin-left: -20px;position: absolute;}
+#bookingForm fieldset ul li.res_types_list label{padding-top: 2px;display: block;width: auto;text-align: left;}
+#bookingForm fieldset span.add-player{ display: block;margin: 12px 0 0 125px;min-height: 18px;padding: 0 0 0 25px;cursor: pointer;}
+#bookingForm .bookedBy{border-radius: 8px;width: 26%;float: right;background-color: #ECE9CE; padding: 10px;}
+#bookingForm .bookedBy .bookerDetails{margin: 5px 10px;color: #666;}
+.fred{color: #ff0000;}
+.yui-skin-sam .yui-panel .bd .courtTable{border-collapse: collapse; width:100%;}
+.yui-skin-sam .yui-panel .bd .courtTable tr td{border: 1px solid #ccc;padding: 5px;text-align: center;}
+.yui-skin-sam .yui-panel .bd .courtTable tr th{border: 1px solid #ccc;padding: 5px;text-align: center; color: darkred;}
+.yui-skin-sam .yui-panel .bd .spanClass{padding-bottom: 10px; font-size: 14px; font-weight: bold;}
+.yui-skin-sam .yui-panel .bd .conflictTable{border-collapse: collapse; width:100%;}
+.yui-skin-sam .yui-panel .bd .conflictTable tr td{border: 1px solid #ccc;padding: 5px;text-align: left;white-space:pre-wrap;}
+.yui-skin-sam .yui-panel .bd .conflictTable tr th{border: 1px solid #ccc;padding: 5px;text-align: center; color: darkred;}
+.yui-skin-sam .yui-panel .bd .conflictTable li{padding: 5px 0px;}
+
+#bookingHistory{}
+#bookingHistory .confNumber{float: right;font-size: 12px;margin: 0 25px 0 0;}
+#bookingHistory .confNumber label{}
+#bookingHistory .confNumber span{}
+#bookingHistory .confTitle{font-size: 20px;color: #993300;}
+#bookingHistory .top{background: url("/r/img/core/arrows_sprite.png") no-repeat scroll 0 -127px transparent;padding: 0 0 0 15px;cursor: pointer;}
+#bookingHistory .left{width: 55%;float: left;padding: 0 0 0 30px;}
+#bookingHistory .right{width: 35%;float: right;background-color: #EAE7CC;padding: 10px;}
+#bookingHistory .right .title, #bookingHistory .right .changes{margin: 0 0 10px 0;}
+#bookingHistory .right .title{color: #666;}
+#bookingHistory .bcollapse .left, #bookingHistory .bcollapse .right{display: none;}
+#bookingHistory .bexpand .left, #bookingHistory .bexpand .right{display: block;}
+#bookingHistory .updateDate{margin: 0 400px 0 0;float: right;color: #444;}
+#bookingHistory .bexpand .updateDate{display: none;color:#444;}
+#bookingHistory .bexpand .top{padding: 10px 0 20px 0;background: none;}
+#bookingHistory .bexpand .top .bookingTitle{font-size: 16px;font-weight: bold;}
+.bookingTitle .normalText{font-size: 10pt;font-weight: normal;margin: 0 0 0 7px;}
+#bookingHistory .latest .top{cursor: default;}
+
+#availableParticipants .table1{border-collapse:collapse;width: 1130px;display: table;}
+#availableParticipants .MT30{margin:10px 0 0 0;}
+#availableParticipants .headText{color: #666666;float: right;font-size: 11px;margin-top: -15px;width: 29%;}
+#availableParticipants .available-count{ font-size: 14px;position: relative;top: -1px;}
+#availableParticipants .table1 .header{background: #D36A0F; border: 1px solid #999999;}
+#availableParticipants .table1 .header > div{padding: 7px 5px 7px 20px;}
+#availableParticipants .table1 .row > div{padding: 7px 5px 7px 20px;}
+#availabilityTable .row{display: table-row;height: 25px; border-left: 1px solid #999999;border-right: 1px solid #999999;border-top:0px;}
+#availabilityTable .last{ border-bottom: 1px solid #999999;}
+#availabilityTable .name{font-weight:bold;}
+#gameSeekers .MT30{margin: 11px 0 40px 0;}
+
+.booking-edit .delete_rebook{display: inline-block;margin: 0 0 0 110px;}
+.booking-edit .delete_rebook #btnCancelRbk{cursor: pointer;}
+.booking-edit .delete_rebook .hints{right: -200px;}
+
+.bookings-grid .alertbox{margin: 5px 45px;}
+.bookings-grid .msgbox{margin: 5px 45px;}
+.bookings-grid #cneDialog #cneDialogHeader{font-weight:normal;border:none;text-align:center;font-size: 25px;margin: 6px;height:45px;line-height:45px;color:#fff;}
+.bookings-grid #cneDialog #cneDialogFooter{text-align:center;font-size:17px;color:#666;background-color:#fff;}
+.bookings-grid #cneDialog .container-close{background: none;top:20px;right:10px;overflow: visible;font-size: 0px;color:#fff;}
+.bookings-grid #cneDialog .container-close::after{content:"X";font-size: 25px;}
+#booking_err_detail {
+    float:left;width:850px
+}
+
+#booking_err_detail .yui-pg-page {
+    margin-left: 0px;
+    padding: 1px 3px;
+}
+} /* end of media screen */
+
+@media print {
+    .bookings-grid > * {display:none;}
+    .bookings-grid > div#wrapper {display:block;}
+    .bookings-grid div#wrapper > * {display:none;}
+    .bookings-grid div#wrapper > div#main {display:block;}
+    .bookings-grid div#main > *{display: none;}
+    .bookings-grid div#main > #t1title, .bookings-grid div#main > #wrapper_content{display: block;}
+    .bookings-grid #body2 > * {display:none;}
+    .bookings-grid #body2 > div#viewer{display:block;}
+    .bookings-grid table.courtViewer{width: 100%;}
+    .bookings-grid table.courtViewer div.timeslot{border-top: solid 1px white; }
+    .bookings-grid table.courtViewer div.timeslot{border-left: solid 1px white; }
+    .bookings-grid table.courtViewer th.courtheading a{text-decoration: none;}
+    #dateSelector-left{display: none;}
+    #dateSelector-right{display: none;}
+/*    #header { display: none; }
+    #dev_tools { display: none; }
+    #cv_actions { display: none; }
+    #dateSelector-picker .inactive { display: none; }
+    #dateSelector-picker .active a { text-decoration: none; color: black; position: absolute; left: 100px; top: 50px; }
+    #dateSelector-picker ul { list-style: none; }
+    #dateSelector-picker ul li { list-style: none; }
+    #dateSelector-left { display: none; }
+    #dateSelector-right { display: none; }
+    #zoomBox { display: none; }
+    #cv_date { position: absolute; left: 10px; top: 50px; }
+    .refreshLink { font-size: 10px; }
+    .refreshLink:before { content: "Generated at "; }
+    .groupHeader { text-align: center; }
+    .groupHeader span > a { display: none; }
+    div .timeslot { padding: 0; border: solid #d0d0d0 1px; }
+    .timeslot .edit { display: none; }
+    .timeslot .right { display: none; }
+    .timeslot .chkbx { display: none; }
+    .timeslot .time { font-size: 10px; text-decoration: underline; }
+    .timeslot .timenotitle { font-size: 10px; text-decoration: underline; }
+    .timeslot .time-booked { font-size: 10px; padding-right: 5px; text-decoration: underline; }
+    .timeslot .desc{ font-size: 10px; }
+    .legend { display: none; }
+    #globalstealthloader { display: none; }
+    .yui-history { display: none; }
+    .courtheading { text-align: left; }*/
+}
+
+/*booking-intelligence-report*/
+.bi-report .container{background-color: #fff;padding: 10px 20px;}
+.bi-report .same-yr{float:left; width: 98.5%;padding:0 6px 11px 6px;border-bottom: 1px solid #999998;}
+.bi-report .same-yr div.previous a, .bi-report .previous-yr div.previous a{float: left;background: url(/r/img/scheduling/arrow_sprite.gif) no-repeat left -15px;padding: 0 0 0 15px;}
+.bi-report .same-yr div.dates{color:#666;margin: 0 auto;width:50%;font-size: 18px;float:left;text-align: center;}
+.bi-report .same-yr div.next a, .bi-report .previous-yr div.next a{float: right;background: url(/r/img/scheduling/arrow_sprite.gif) no-repeat scroll right top transparent;padding: 0 15px 0 0;}
+.bi-report .previous-yr{background-color: #F2F2F2;height: 17px;padding: 10px 7px;}
+.bi-report .stats-block{float:left;width: 100%;margin:20px 0 0;}
+.bi-report .stats-block .header{background-color: #666666;color: #FFFFFF;font-size: 17px;height: 18px;padding: 12px 13px;}
+.bi-report .stats-block .header ul{width: 75%;}
+.bi-report .stats-block .header ul li{float:left;}
+.bi-report .stats-block .header ul li .graybox{background-color:#666; height: 17px;width: 30px;float:left;margin:0 10px 0 0;}
+.bi-report .stats-block .header ul .blank{width:6%;float:left;}
+.bi-report .stats-block .header ul .type, .stats-block .header ul .year{width: 36%;}
+.bi-report .stats-block .header ul .B, .stats-block .header ul .percentage{width: 11%}
+.bi-report .stats-block .info{width: 68%;float:left;}
+.bi-report .stats-block .info .stats-col1{width: 8%;}
+.bi-report .stats-block .info .stats-col2{width:39%;font-size:19px;}
+.bi-report .stats-block .info .stats-col3{width:12%;font-size:19px;}
+.bi-report .stats-block .info .stats-col4{width:12%;}
+.bi-report .stats-block .info .stats-col5{width:21%;}
+.bi-report .stats-block .info .pt10{padding:10px 0 0 0;}
+.bi-report .stats-block .info ul{padding: 20px 10px;}
+.bi-report .stats-block .info ul li{float:left;}
+.bi-report .stats-block .info ul li .box{height: 17px;width: 30px;border:1px solid #666;float:left;margin:0 10px 0 0;}
+.bi-report .stats-block .info ul li .wbox{background-color:#FFF; height: 17px;width: 30px;float:left;margin:0 10px 0 0;}
+.bi-report .stats-block .graph{float:left; margin:20px 0 0 10px; width:25%; height:400px; background-color: none}
+.bi-report .stats-block #utilization_div {display: inline-block;text-shadow: 0.03em 0.03em 0.03em #333;margin:22px 0px 4px 50px;color:#FFF; background: #A6D012;border-radius: 55px; line-height:110px;font-size:43px;text-align: center;width:110px;height: 110px;font-weight:bold;}
+.bi-report .stats-block #utilization_div .percent-symbol {font-size:27px;display: inline-block;padding-left: 5px;vertical-align: top;}
+.bi-report .stats-block #uti-text{color: #555;display: block;font-size: 19px;line-height: 2;text-align: center;}
+.bi-report .stats-block #uti-formula-text{ color: #888;display: block;text-align: center;width: 100%;}
+.bi-report .wo-block{float: left;width:100%}
+.bi-report .wo-block .week-col1{width:27%;}
+.bi-report .wo-block .week-col2{width:20%;}
+.bi-report .wo-block .week-col3{width:41%;}
+.bi-report .week-block{background-color: #E9F2DB;width:43.5%;float:left;height: 116px;padding:20px;}
+.bi-report .week-block .header, .bi-report .other-block .header{text-align: center;font-weight: bold;padding: 0 0 7px 0;}
+.bi-report .week-block .info ul li{float:left;}
+.bi-report .week-block .info ul{line-height: 1.5;}
+.bi-report .other-block{background-color: #E9F2DB;width:43.5%;float:left;margin-left:20px;height: 116px;padding:20px;}
+.bi-report .other-block .width-40{width: 40%;}
+.bi-report .other-block .info ul li{float:left;}
+.bi-report .other-block .info ul{line-height: 1.5;}
+
+.booking-rules-fees ul.list-items li {margin:5px 4px 6px 4px;padding: 8px 3px 8px 9px;border:1px solid #A0C318;
+    background-color: #F1F7CF;cursor: move;}
+.booking-rules-fees ul.list-items li a{font-size:16px;color: #555;}
+.booking-rules-fees ul.list-items li.inactive {margin:5px 4px 6px 4px;padding: 8px 3px 8px 9px;
+   border:1px solid #ff9999;background-color: #ffdddd;color: #555;cursor: move;}
+.booking-rules-fees ul.list-items span.rules-name {padding: 20px;letter-spacing: 0.1px;color:#555;font-size: 17px;line-height: 2;}
+.booking-rules-fees ul.rtype_rules li {cursor: default;}
+.booking-rules-fees ul.rtype_rules li.inactive {cursor: default;}
+.booking-rules-fees .rules-dropdown{font-size: 12px;width: 98px;}
+.booking-rules-fees  .rule-actions{float:left;font-size:13px;}
+.booking-rules-fees a.dt-action{margin: 4px 0px 0 5px;}
+
+/* style the popup box Cancel-Booking */
+.booking-edit #cancelDialog {line-height: 0px;}
+.booking-edit #cancelDialog  .hd {background:#555555;color:#fff;height:35px;font-size:16px;padding: 0 12px;
+     line-height: 2.2;font-weight: normal;}
+.booking-edit #cancelDialog .ft {background:#f6f3db;clear:both;}
+.booking-edit #cancelDialog .ft .button-group {text-align: center;}
+.booking-edit #cancelDialog .bd {color:#555;overflow:hidden;font-size: 18px;padding: 20px 0px 10px 0px;line-height: 3.3;}
+.booking-edit #cancelDialog .ft .button-group .yui-button {display: inline-block;vertical-align: text-bottom;
+    margin: 15px;}
+.booking-edit #cancelDialog .yui-icon{background: url(/r/img/scheduling/question_mark.png) no-repeat;
+    background-size: cover;width: 60px;height:60px;margin: 0px 16px 0px 16px;
+    background-image: none\9;
+    filter: progid:DXImageTransform.Microsoft.AlphaImageLoader( src="/r/img/scheduling/question_mark.png", sizingMethod="scale");
+}
+.waitlist-schedule .list-title{display:inline-block;}

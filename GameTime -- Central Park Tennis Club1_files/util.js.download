@@ -1,0 +1,110 @@
+if(typeof GT=="undefined"||!GT){var GT={};}
+var YUC = YAHOO.util.Connect;
+GT.util = {
+    form: {
+        errors: {
+            show: function(e){
+                GT.util.form.errors.remove();
+                for(var k in e){
+                    var span = document.createElement('span');
+                    span.className = 'error';
+                    span.appendChild(document.createTextNode(e[k]));
+                    YAHOO.util.Dom.insertAfter(span, document.getElementsByName(k)[0]);
+                }
+            },
+            remove: function(){
+                var errorTags = YAHOO.util.Selector.query('.error');
+                for(var k in errorTags){
+                    errorTags[k].parentNode.removeChild(errorTags[k]);
+                }
+            }
+        }
+    },
+    timeFormat: function(time){
+        var min, hrs;
+        min = time % 60;
+        hrs = Math.floor(time / 60);
+        if (hrs > 0) {
+            return (min == 0) ? hrs + " hr " : hrs + " hr " + min + " min";
+        } else {
+            return min + " min";
+        }
+    },
+    currency: function(e) {
+        var num = e;
+        num = num.toString().replace(/,/g,'');
+        if(isNaN(num)) {
+            num = "0";
+        }
+        var sign = (num == (Math.abs(num)));
+        num = Math.floor(num*100+0.50000000001);
+        var cents = num%100;
+        num = Math.floor(num/100).toString();
+        if(cents<10) {
+            cents = "0" + cents;
+        }
+        for(var i = 0; i < Math.floor((num.length-(1+i))/3); i++) {
+            num = num.substring(0,num.length-(4*i+3))+','+ num.substring(num.length-(4*i+3));
+        }  
+        var num_substr = num.substring(0,3);
+        if(num.length > 3 && num_substr.indexOf(',')==(-1)){
+            num = num.substring(0,1)+','+num.substring(1);
+        }
+        return ((sign)?'' +  num + '.' + cents :'0.00');
+    },
+    getCurrentDateTime: function(){
+        var now     = new Date(); 
+        var year    = now.getFullYear();
+        var month   = now.getMonth()+1; 
+        var day     = now.getDate();
+        var hour    = now.getHours();
+        var minute  = now.getMinutes();
+        var second  = now.getSeconds(); 
+        if(month.toString().length == 1) {
+            var month = '0'+month;
+        }
+        if(day.toString().length == 1) {
+            var day = '0'+day;
+        }
+        if(hour.toString().length == 1) {
+            var hour = '0'+hour;
+        }
+        if(minute.toString().length == 1) {
+            var minute = '0'+minute;
+        }
+        if(second.toString().length == 1) {
+            var second = '0'+second;
+        }
+        var dateTime = year+'/'+month+'/'+day+' '+hour+':'+minute+':'+second;
+        return dateTime;
+    },
+    showHint: function(id) {
+        var hint = document.getElementById(id);
+        hint.style.display = 'block';
+    },
+    hideHint: function(id) {
+        var hint = document.getElementById(id);
+        hint.style.display = 'none';
+    },
+    ordinal_suffix_of: function(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j == 1 && k != 11) {
+        return i + "st";
+    }
+    if (j == 2 && k != 12) {
+        return i + "nd";
+    }
+    if (j == 3 && k != 13) {
+        return i + "rd";
+    }
+    return i + "th";
+    },
+    getHashValue: function(key) {
+        return location.hash ? location.hash.match(new RegExp(key+'=([^&]*)'))[1] : null;
+    }
+}
+Date.prototype.getMonthWeek = function(){
+    var firstDay = new Date(this.getFullYear(), this.getMonth(), 1).getDay();
+    return Math.ceil((this.getDate() + firstDay)/7);
+}

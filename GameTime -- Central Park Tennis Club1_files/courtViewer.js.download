@@ -1,0 +1,595 @@
+/**
+ * Construct the court viewer object.
+ * @constructor
+ * @this courtViewer
+ * @param {string | HTMLElement} target ID of the element to use as the target,
+ *                                      or a reference to the element itself.
+ * @param {int} defaultSport            OPTIONAL default sport to use when initialized. If none is given,
+ *                                      whatever sport the data passes back will be used.
+ * @param {int} defaultGroup            OPTIONAL default group to use when initialized. If none is given,
+ *                                      whatever group the data passes back will be used.
+ * @param {Object} urls                 OPTIONAL Object containing URLs to override the default urls for
+ *                                      data (data), booking (book), editing (edit), and waitlist (waitlist).
+ * @param {Object} sports               OPTIONAL Array containing sport names with their IDs as keys. If
+ *                                      given, a sport chooser will be shown above the group chooser.
+ */
+
+//courtViewer.prototype = new baseViewer();
+//courtViewer.prototype.constructor = courtViewer;
+function courtViewer(target, defaultSport, defaultGroup, urls, sports, courtId, wideView, defaultCourt, vOptions) {
+    this.entity = 'court';
+    this.occupants = 'p';
+    this.dataUrl = baseUrl + '/scheduling/index/jsoncourtdata';
+    this.alldataUrl = baseUrl + '/scheduling/index/jsonallcourt';
+    this.dayUrl = baseUrl + '/scheduling/index/index';
+    if (courtId)
+        this.dataUrl += '/court/'+courtId;    
+    if (wideView){
+        this.setWideView(true);        
+        if(wideView.sport){            
+            this.setWideViewUseSport(true);
+        }        
+    }        
+    this.bookUrl = baseUrl + '/scheduling/index/book/sport/'+defaultSport;
+    this.editUrl = baseUrl + '/scheduling/index/editbooking/sport/'+defaultSport;
+    this.confUrl = baseUrl + '/scheduling/confirmation/history/sport/'+defaultSport;
+    this.waitUrl = baseUrl + '/scheduling/waitlist/index';
+    this.ladderUrl = baseUrl + '/ladder';
+    this.wideviewUrl = baseUrl + '/scheduling/index/wideview/true';
+    this.weekviewUrl = baseUrl + '/scheduling/index/weekview/sport/'+defaultSport;
+    this.monthviewUrl = baseUrl + '/scheduling/index/monthview/sport/'+defaultSport+'/court/'+defaultCourt;
+    this.registerUrl = baseUrl + '/scheduling/index/registerbooking/sport/'+defaultSport;
+    this.target = target;
+    this.params = [ ['date'], ['group', defaultGroup], ['sport', defaultSport] ];
+    this.urls = urls;
+    this.sports = sports;
+    this.defaultCourt = defaultCourt;
+    this.groups = null;
+    this.courts = null;
+    this.waitlistEnabled = 0;
+    this.containerDiv = 'booking-actions';
+    this.availablePlayersEnabled = true;
+    this.monthView = true;
+    this.allowToViewMonthview = false;
+    this.wideviewBookingOffset = 3.5;
+    this.urlsToOverrides = {};
+
+    if(vOptions) {
+        if(vOptions.weekview) {
+            this.weekview = vOptions.weekview;
+        }
+        if(vOptions.gridRefresh) {
+            this.gridRefresh = vOptions.gridRefresh;
+        }
+        if(vOptions.urlsToOverrides) {
+            this.urlsToOverrides = vOptions.urlsToOverrides;
+        }
+        if(vOptions.selectedTheme) {
+            this.selectedTheme = vOptions.selectedTheme;
+        }
+    }
+    
+    // initialize the urls
+    this.initViewer();
+}
+courtViewer.extendFunction( baseViewer );
+
+courtViewer.prototype.initHistory = function(params) {
+    var cv = this;
+    
+    // Grab YUI history stuff
+    for (param in params) {
+        if (params[param[0]][0] == 'date') {
+            var date = YAHOO.util.History.getBookmarkedState('date');
+            date = (date == 'null' || date == null) ? new Date() : this.getDateFromStr(date);
+            this.currentDate = date;
+            YAHOO.util.History.register('date', cv.getDateStr(), function(d) {cv.setDateStr(d)});
+        } else if (params[param[0]][0] == 'court') {
+            var court = YAHOO.util.History.getBookmarkedState('court');
+            court = (court == 'null') ? null : court;
+            this.court = court ? court : params[param[0]][1];
+            YAHOO.util.History.register('court', cv.court + '', function(c) {cv.setCourt(c)});
+        } else if (params[param[0]][0] == 'group') {
+            var group = YAHOO.util.History.getBookmarkedState('group');
+            group = (group == 'null') ? null : group;
+            this.group = group ? group : params[param[0]][1];
+            YAHOO.util.History.register('group', cv.group + '', function(g) {cv.setGroup(g)});
+        } else if (params[param[0]][0] == 'sport') {
+            var sport = YAHOO.util.History.getBookmarkedState('sport');
+            sport = (sport == 'null') ? null : sport;
+            this.sport = sport ? sport : params[param[0]][1];
+            // If we have an array of sports, allow for YUI history stuff
+            if(this.sports) {
+                YAHOO.util.History.register('sport', cv.sport + '', function(s){cv.setSport(s)});
+            }
+        }
+    }
+    this.parent.initHistory.call(this);
+}
+
+// Court Group setting/getting
+courtViewer.prototype.getGroups = function() {return this.groups;}
+courtViewer.prototype.setGroups = function(o) {this.groups = o;}
+
+courtViewer.prototype.isWaitlistEnabled = function() {return this.waitlistEnabled;}
+courtViewer.prototype.setWaitlistEnabled = function(o) {this.waitlistEnabled = o;}
+
+courtViewer.prototype.isLadderEnabled = function() {return this.ladderEnabled;}
+courtViewer.prototype.setLadderEnabled = function(o) {this.ladderEnabled = o;}
+
+courtViewer.prototype.isAvailablePlayersEnabled = function() {return this.availablePlayersEnabled;}
+courtViewer.prototype.setAvailablePlayersEnabled = function(o) {this.availablePlayersEnabled = o;}
+
+courtViewer.prototype.isMonthView = function() {return this.monthView;}
+courtViewer.prototype.setMonthView = function(o) {this.monthView = o;}
+
+courtViewer.prototype.isAllowToViewMonthview = function() {return this.allowToViewMonthview;}
+courtViewer.prototype.setallowToViewMonthview = function(o) {this.allowToViewMonthview = o;}
+
+// Court setting/getting
+courtViewer.prototype.getDays = function() {return this.days;}
+courtViewer.prototype.setDays = function(o) {this.days = o;}
+
+courtViewer.prototype.getWideViewBookingOffset = function() {return this.wideviewBookingOffset;}
+courtViewer.prototype.setWideViewBookingOffset = function(o) {this.wideviewBookingOffset = o;}
+
+courtViewer.prototype.getColumns = function() {return this.columns;}
+courtViewer.prototype.setColumns = function(o) {this.columns = o;}
+
+/**
+ * Set the group ID to use. This will cause a refresh of data.
+ *
+ * @param {int} group New group to use.
+ */
+courtViewer.prototype.setGroup = function(group) {
+    this.group = group;
+    this.refresh();
+}
+
+/**
+ * Set the sport ID to use. This will cause a refresh of data.
+ *
+ * @param {int} sport New sport to use.
+ */
+courtViewer.prototype.setSport = function(sport) {
+    sport = parseInt(sport, 10);
+    if(this.sports && this.sports[sport]) {
+        this.sport = sport;
+        this.refresh();
+    }
+}
+
+/**
+ * Generate the sport selector div used by the admin view.
+ *
+ * @return {HTMLDivElement}
+ */
+courtViewer.prototype.generateSportHeader = function() {
+    var div = document.createElement("div");
+    div.classList.add('groupHeader');
+    var sports = this.sports;
+    var i, a, name, id, span;
+    for(i in sports) {
+        name = sports[i];
+        id = i;
+        span = document.createElement('span');
+        if(id == this.sport) {
+            span.appendChild(document.createTextNode(name));
+        } else {
+            a = document.createElement('a');
+            a.appendChild(document.createTextNode(name));
+            YAHOO.util.Event.addListener(a, 'click', function(e, id){
+                YAHOO.util.History.navigate('sport', id + '');
+            }, id);
+            span.appendChild(a);
+        }
+        div.appendChild(span);
+    }
+    return div;
+}
+
+/**
+ * Generate the group selector div.
+ *
+ * @return {HTMLDivElement}
+ */
+courtViewer.prototype.generateGroupHeader = function() {
+    var div = document.createElement("div");
+    div.id = 'groupHeader';
+    div.classList.add('groupHeader');
+    var groups = this.getGroups();
+    var i, a, name, id, span,court,cid;
+    for(i in groups) {
+       name = groups[i]['n'];
+       id = groups[i]['g'];
+       court = groups[i]['court'];
+       cid = groups[i]['c'];
+       span = document.createElement('span');
+       var url = this.urls.weekview; 
+       //url += "/sport/" + this.sport;
+       url += "/court/" + cid;
+       url += "#date=" + this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate();
+       url += "&group=" + id;
+       if(id == this.group) {
+           span.appendChild(document.createTextNode(name));
+       } else {
+           a = document.createElement('a');
+           a.href = "javascript: void(0);";
+           a.appendChild(document.createTextNode(name));
+           if(court==1){
+               YAHOO.util.Event.addListener(a, 'click', function(){
+                   window.location = url;
+               });
+           }else{
+                a.href = this.urls.day + "/sport/" + this.sport;
+                a.href += "#date=" + this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate();
+                a.href += "&group=" + id;
+ 
+                YAHOO.util.Event.addListener(a, 'click', function(e, o) {
+                	window.location = this.href;
+                	window.location.reload();
+//                    YAHOO.util.History.navigate('group', parseInt(o.id) + '');
+                }, {cv:this, id:parseInt(id)});
+           }
+           span.appendChild(a);
+       }
+       div.appendChild(span);
+    }
+    return div;
+}
+
+/**
+ * Generate the top header with the month name, calendar, waitlist link.
+ *
+ * @return {HTMLDivElement}
+ */
+courtViewer.prototype.generateTopHeader = function() {
+    var divs = baseViewer.prototype.generateTopHeader.call(this);
+    var div = divs[0];
+    var actionsDiv = divs[1];
+
+    // gameseeker
+    
+    if (this.isAvailablePlayersEnabled()) {
+        var spanGameseeker = document.createElement('span');
+        spanGameseeker.classList.add('icon');
+        spanGameseeker.classList.add('icon_seeker');
+        spanGameseeker.classList.add('icon_left');
+        if(this.selectedTheme == 'wide_theme'){
+            spanGameseeker.setAttribute('style','padding: 5px 15px 5px 33px;')
+        }
+        var aGameseeker = document.createElement('a');
+        aGameseeker.href = baseUrl + '/scheduling/gameseeker/index/sport/'+this.sport;
+        if(this.selectedTheme == 'wide_theme'){
+            aGameseeker.appendChild(document.createTextNode('Players'));
+        }else{
+            aGameseeker.appendChild(document.createTextNode('Available Players'));
+        }
+        spanGameseeker.appendChild(aGameseeker);
+        actionsDiv.appendChild(spanGameseeker);
+    }
+    
+    if(this.isMonthView() && this.isAllowToViewMonthview()){
+        var defaultCourt = this.getColumns();
+        var spanMonthview = document.createElement('span');
+        if(this.selectedTheme == 'wide_theme'){
+            spanMonthview.setAttribute('style','background : url(/r/img/core/icons.png) no-repeat 10px -68px;padding-left:23px;padding: 5px 15px 5px 33px;');
+        }else if(this.selectedTheme == 'default_theme'){
+            spanMonthview.setAttribute('style','background : url(/r/img/core/icons.png) no-repeat 0px -74px;padding-left:23px;');
+        }
+        var aMonthView = document.createElement('a');
+        aMonthView.href = this.monthviewUrl+"#month=" + (this.getDate().getMonth()+1);
+        aMonthView.appendChild(document.createTextNode('MonthView'));
+        spanMonthview.appendChild(aMonthView);
+        actionsDiv.appendChild(spanMonthview);
+    }
+    
+    if (this.isWaitlistEnabled()) { 
+        var spanWaitlist = document.createElement('span');
+        spanWaitlist.classList.add('icon');
+        spanWaitlist.classList.add('icon_wait');
+        spanWaitlist.classList.add('icon_left');
+        if(this.selectedTheme == 'wide_theme'){
+            spanWaitlist.setAttribute('style','padding: 5px 15px 5px 33px;');
+        }
+        var a = document.createElement('a');
+        if (this instanceof courtViewer) {
+            a.href = this.urls.waitlist + '/sport/' + this.sport;
+        }
+        a.appendChild(document.createTextNode('Waitlist'));
+        spanWaitlist.appendChild(a);
+        actionsDiv.appendChild(spanWaitlist);
+    }
+
+    if (this.isLadderEnabled()) {
+        var spanLadder = document.createElement('span');
+        spanLadder.classList.add('icon_ladder');
+        if(this.selectedTheme == 'wide_theme'){
+            spanLadder.setAttribute('style','padding: 5px 15px 5px 33px;');
+        }
+        var a = document.createElement('a');
+        if (this instanceof courtViewer) {
+            a.href = this.urls.ladder;
+        }
+        a.appendChild(document.createTextNode('All Ladders'));
+        spanLadder.appendChild(a);
+        actionsDiv.appendChild(spanLadder);
+    }
+    div.appendChild(actionsDiv);
+
+    return div;
+};
+
+var checkinCallback = function(o) {
+    var checkinImg;
+    var parms = YAHOO.lang.JSON.parse(o.responseText);
+
+    parms = parms.Response.Results;
+    checkinImg = document.getElementById(parms.player_num+'_'+parms.booking_link_id);
+    if (checkinImg) {
+        if (checkinImg.src.indexOf('/checkedin.png') != -1)
+        {
+            checkinImg.src = '/r/img/core/notcheckedin.png';
+            checkinImg.setAttribute('type', '1');
+        }
+        else
+        {
+            checkinImg.src = '/r/img/core/checkedin.png';
+            checkinImg.setAttribute('type', '0');
+        }
+    }
+};
+
+courtViewer.prototype.checkin = function() {
+     if ((this.getAttribute('isAdmin') == 'false' && this.getAttribute('Adminauthorizationcheckinadmin') == "1") || (this.getAttribute('isAdmin') == 'true' && this.getAttribute('Adminauthorizationcheckinadmin') == "1" && this.getAttribute('isDeveloper') == 'false')) {
+        if (this.getAttribute('type') != 0) {
+            
+            YAHOO.util.Selector.query('#checkingDialog #clubnumberid')[0].value = "";
+            YAHOO.util.Selector.query('#checkingDialog #mclubnumber')[0].value = this.getAttribute('clubnumbercheckin');
+            YAHOO.util.Selector.query('#checkingDialog #order')[0].value = this.getAttribute('order');
+            YAHOO.util.Selector.query('#checkingDialog #booking_id')[0].value = this.getAttribute('booking_id');
+            YAHOO.util.Selector.query('#checkingDialog #type')[0].value = this.getAttribute('type');
+            YAHOO.util.Selector.query('#checkingDialog #guest')[0].value = this.getAttribute('guest');
+            YAHOO.util.Selector.query('#checkingDialog span.user-name')[0].innerHTML = this.getAttribute('pname');
+
+            checkingDialog.render(document.body);
+            checkingDialog.show();
+        } else {
+            YAHOO.util.Connect.asyncRequest('GET', '/scheduling/index/checkingin?args=' + this.getAttribute('order') + '_' + this.getAttribute('booking_id') + '_' + this.getAttribute('type') + '_' + this.getAttribute('guest'), {
+                success: checkinCallback,
+                failure: function () {}
+            });
+        }
+    } else {
+        YAHOO.util.Connect.asyncRequest('GET', '/scheduling/index/checkingin?args=' + this.getAttribute('order') + '_' + this.getAttribute('booking_id') + '_' + this.getAttribute('type') + '_' + this.getAttribute('guest'), {
+            success: checkinCallback,
+            failure: function () {}
+        });
+    }
+}
+
+/**
+ * Refresh all of the data used by the court viewer, and redraw the court viewer
+ * in the target element.
+ */
+courtViewer.prototype.refresh = function() {
+    var viewer = this;
+    var succFunc = function(o) {
+        viewer.clearCurrentRequest();
+        var json = YAHOO.lang.JSON.parse(o.responseText);
+        if (json['error']) {
+            window.location = json['url'];
+            exit;
+        }
+
+        viewer.setGroups(json.g.g);
+        if(viewer.isWideView()) { 
+            var allSportsArr = new Array();
+            for(var s in json.s.s) {
+                allSportsArr[json.s.s[s]['id']] = new Array();
+                allSportsArr[json.s.s[s]['id']] =(json.s.s[s]['name']);
+            }
+            viewer.setSports(allSportsArr);
+        }
+        else {
+            viewer.group = json.g.s;
+        }
+        
+        if (viewer.isWeekview())
+            viewer.setDays(json.d);
+        else
+            viewer.setLocations(json.e);
+        if(viewer.isWideView()){
+            viewer.setCTime(json.rt);
+            viewer.setOpen(json.ct);
+            viewer.setClose(json.ct + viewer.getWideViewBookingOffset());
+        }else{
+            viewer.setOpen(json.q);
+            viewer.setClose(json.c);
+        }
+        viewer.setReservationTypes(json.j);
+        viewer.rtypesArr = json.r;
+        viewer.numRTypes = json.l;
+        viewer.setMresData(json.m);
+        viewer.render();
+        finishStealthLoading();
+    }
+
+    var callback = {success:succFunc, failure: function(){}};
+    if(this.isWideView()) {
+        var url = this.urls.alldata;       
+        if(wideView.sport){
+            this.setWideViewUseSport(true);
+        }
+        if(this.isWideViewUseSport()){
+            url += "/sport/" + this.sport;
+        }
+        url += "?wideview=1"; 
+    } else {
+        var url = this.urls.data;
+        url += (this.sport) ? "/sport/" + this.sport : '';
+        url += "/date/" + this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate();
+        
+        var arrQS = [];
+        if(this.group) {
+            arrQS.push("group=" + this.group);
+        }
+        if(this.isWeekview()) {
+            arrQS.push("court=" + this.isWeekview());
+        }
+        if(this.gridRefresh) {
+            arrQS.push("ref=1");
+        }
+        if(arrQS.length > 0) {
+            url += "?"+arrQS.join('&');
+        }
+        
+        if(this.urlsToOverrides.data) {
+            url = this.urlsToOverrides.data;
+        }
+    }
+    this.parent.refresh.call(this, url, callback);
+}
+/**
+ * Generate the row of the booking table used to display the court names.
+ *
+ * @param {Object} courts   Object containing the court information.
+ * @return {HTMLTableRowElement}
+ */
+courtViewer.prototype.generateLocationNameTr = function(locs) {
+    var tr = document.createElement("tr");
+    var timeCol = this.isGenerateHoursTd;
+
+    if (timeCol) {
+        var th = document.createElement("th");
+        th.classList.add('courtheading');
+        var theSpan = document.createElement('span');
+        theSpan.appendChild(document.createTextNode('Time'));
+        th.appendChild(theSpan);
+        theSpan.style.verticalAlign = "middle";
+        theSpan.style.paddingBottom = "2px";
+        th.style.width = this.timeWidth + "px";
+        tr.appendChild(th);
+    }
+    if (this.isWeekview()) {
+        var dayStrings = this.getDayStrings(7);
+        var arrowTop = '42px';
+        for (var i=0; i<dayStrings.length; i++) {
+            var a = document.createElement('a');
+            a.href = this.urls.day+'/sport/'+this.sport+'#date='+YAHOO.util.Date.format(dayStrings[i], {format:'%Y-%m-%d'})+'&group='+this.group;
+            a.style.color = 'white';
+            var th = document.createElement("th");
+            th.classList.add('courtheading');
+            var theSpan = document.createElement('span');
+            if (i == 0) {
+                var leftArrow = this.generateArrow('left');
+                if (timeCol)
+                    leftArrow.style.left = '65px';
+                leftArrow.style.top = arrowTop;
+                theSpan.appendChild(leftArrow);
+            }
+            theSpan.appendChild(document.createTextNode(YAHOO.util.Date.format(dayStrings[i], {format:'%a %e'})));
+            if (i == dayStrings.length-1) {
+                var rightArrow = this.generateArrow('right');
+                rightArrow.style.top = arrowTop;
+                theSpan.appendChild(rightArrow);
+            }
+            a.appendChild(theSpan);
+            th.appendChild(a);
+            theSpan.style.verticalAlign = "middle";
+            theSpan.style.paddingBottom = "2px";
+            th.style.width = Math.floor((this.courtViewerWidth - this.timeWidth) / dayStrings.length) + "px";
+            tr.appendChild(th);
+        }
+    } else {
+        if(this.isWideView()) { 
+            var groups = this.getGroups();
+            var tr2 = document.createElement("tr");
+            if(this.isGenerateHoursTd) {
+                var th = document.createElement("th");
+                th.classList.add('courtgroupheading');
+                tr2.appendChild(th);
+            }
+            var availableGroups = new Array();
+            for(var g in groups) {
+                var colSpanCount = 0;
+                for(var i in locs) {
+                    if(groups[g]['g']==locs[i].g)
+                    colSpanCount++;
+                    availableGroups.push(locs[i].g);
+                }
+                if(availableGroups.indexOf(groups[g]['g'])!=-1) {
+                    var th = document.createElement("th");
+                    th.classList.add('courtgroupheading');
+                    th.colSpan = colSpanCount;
+                    var theSpan = document.createElement('span');
+                    theSpan.appendChild(document.createTextNode(groups[g]['n']));
+                    th.appendChild(theSpan);
+                    tr2.appendChild(th);
+                }
+            }
+        }
+        for(var i in locs) {
+            var a = document.createElement('a');
+            if(this.urls.weekview) {
+                a.href = this.urls.weekview + '/court/' + locs[i].i+'#date='+ + this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate()+'&group='+this.group;
+            }
+            a.style.color = 'white';
+            var th = document.createElement("th");
+            th.classList.add('courtheading');
+            var theSpan = document.createElement('span');
+            theSpan.appendChild(document.createTextNode(locs[i].n));
+            a.appendChild(theSpan);
+            th.appendChild(a);
+            theSpan.style.verticalAlign = "middle";
+            theSpan.style.paddingBottom = "2px";
+            th.style.width = Math.floor((this.courtViewerWidth - this.timeWidth) / locs.length) + "px";
+            tr.appendChild(th);
+        }
+    }
+    if(this.isWideView()) { 
+        return [tr,tr2]; 
+    } else { 
+        return tr; 
+    }
+
+}
+/**
+ * Using the data acquired through the refresh method, redraw all the elements
+ * of the court viewer.
+ */
+courtViewer.prototype.render = function() {
+    this.parent.render.call(this);
+    if(this.sports && this.sports[this.sport]) {
+        //this.target.appendChild(this.generateSportHeader());        
+        YAHOO.util.Dom.insertAfter(this.generateSportHeader(), $('dateSelector'));
+    }
+    if (this.isWeekview()) {
+        var divCourt = document.createElement('div');
+        divCourt.setAttribute('id', 'weekview_title');
+        divCourt.setAttribute('style', 'text-align:center;font-size:16px;');
+        var aCourt = this.days;
+        divCourt.appendChild(document.createTextNode(aCourt[0].n+' (week view)'));
+        YAHOO.util.Dom.insertAfter(divCourt, $('dateSelector'));
+        this.target.insertBefore(divCourt,this.target.firstChild);
+    } else if (this.getGroups() && !this.isWideView()) {
+        if  (this.getGroups().length > 1)
+            YAHOO.util.Dom.insertAfter(this.generateGroupHeader(), $('dateSelector'));
+            //this.target.appendChild(this.generateGroupHeader());
+            if(this.getLocations().length < 1) {
+        var divMsg = document.createElement('div');
+        divMsg.classList.add('tacenter');
+        divMsg.classList.add('MT10');
+                divMsg.appendChild(document.createTextNode("Sorry, there are no courts available for this group."));
+                YAHOO.util.Dom.insertAfter(divMsg, $('groupHeader'));
+            }
+    } else if(!this.isWideView()) {
+        var divMsg = document.createElement('div');
+        divMsg.classList.add('tacenter');
+        divMsg.classList.add('MT10');
+        divMsg.appendChild(document.createTextNode("Sorry, there are no courts available for this sport."));
+        YAHOO.util.Dom.insertAfter(divMsg, $('dateSelector'));
+        //this.target.appendChild(divMsg);
+    }
+
+}

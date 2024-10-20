@@ -1,0 +1,2575 @@
+Function.prototype.extendFunction = function( parentClassOrObject ){ 
+    if ( parentClassOrObject.constructor == Function ) {
+        //Normal Inheritance 
+        this.prototype = new parentClassOrObject;
+        this.prototype.constructor = this;
+        this.prototype.parent = parentClassOrObject.prototype;
+    } else { 
+        //Pure Virtual Inheritance 
+        this.prototype = parentClassOrObject;
+        this.prototype.constructor = this;
+        this.prototype.parent = parentClassOrObject;
+    }
+    return this;
+}
+
+baseViewer = function() {
+}
+
+var showTimeCol;
+
+var initViewer = function() {
+
+    // Grab YUI history stuff
+    this.initHistory(this.params);
+
+    // Construct url array
+    if(!this.urls) {
+        this.urls = new Object();
+    }
+
+    this.urls = {
+                    data: this.urls.data ? this.urls.data : this.dataUrl,
+                    day: this.urls.day ? this.urls.day : this.dayUrl,
+                    book: this.urls.book ? this.urls.book : this.bookUrl,
+                    edit: this.urls.edit ? this.urls.edit : this.editUrl,
+                    conf: this.urls.conf ? this.urls.conf : this.confUrl,
+                    toggle: this.urls.toggle ? this.urls.toggle : this.toggleUrl,
+                    weekview: this.urls.weekview ? this.urls.weekview : this.weekviewUrl,
+                    monthview: this.urls.monthview ? this.urls.monthview : this.monthviewUrl,
+                    wideview: this.urls.wideview ? this.urls.wideview : this.wideviewUrl,
+                    register: this.urls.register ? this.urls.register : this.registerUrl,
+                    waitlist: this.urls.waitlist ? this.urls.waitlist : this.waitUrl,
+                    ladder: this.urls.ladder ? this.urls.ladder : this.ladderUrl,
+                    alldata : this.urls.alldata ? this.urls.alldata : this.alldataUrl,
+                    placeview: this.urls.placeview ? this.urls.placeview : this.placeviewUrl,
+                    placeviewjson: this.urls.placeviewjson ? this.urls.placeviewjson : this.placeviewjsonUrl,
+                };
+
+    this.target = document.getElementById(this.target);
+    this.columns = null;
+
+    this.admin = false;
+    this.bookingDisabled = false;
+    this.textSize = 10;
+    this.collapsed = 0;
+    this.currTimestamp = null;
+    this.currentTime = 0;
+    this.isStartedAnimation = false;
+    this.refreshFlag = false;
+    this.clubName = '';
+    this.currTime= null;
+    this.currDate= null;
+    this.userCanCheckinAll = 0;
+    this.checkinRange = 7200;
+    this.checkinEnabled = 0;
+    this.checkinViewable = 0;
+    this.checkinDisable = 0;
+    this.mresData = null;
+    this.userId = false;
+    this.showAllCheckboxes = false;
+    this.rtypes = null;
+    this.curTime = null;
+    this.openTime = null;
+    this.closeTime = null;
+    this.gridRefresh = false;
+    this.currentRequest = null;
+    this.showTimeSeconds = false;
+    this.minZoomLevel = 1;
+    this.zoomLevel = this.minZoomLevel;
+    this.toolTip = null;
+    this.showToolTip = false;
+    this.setZoomLevel(YAHOO.util.Cookie.get('cvZoom'+this.sport, '1'), true);
+    this.refresh();
+    this.isGenerateHoursTd = false;
+    var bodyElement = document.body;
+    var bodyClass = bodyElement.className;
+    if(bodyClass.includes('default_theme')){
+        this.selectedTheme = 'default_theme';
+        this.courtViewerWidth = 1165;
+    }else if(bodyClass.includes('wide_theme')){
+        this.selectedTheme = 'wide_theme';
+        const wrapper = document.querySelector('#body')
+        const wrapperComputedStyle = window.getComputedStyle(wrapper, null)
+        let wrapperWidth = wrapper.clientWidth;
+        wrapperWidth -= parseFloat(wrapperComputedStyle.paddingLeft) + parseFloat(wrapperComputedStyle.paddingRight);
+        this.courtViewerWidth = wrapperWidth;
+    }
+    this.minIncrement = 10000;
+    this.checkinOrNoShow = "checkin";
+    this.militaryTime = false;
+    this.showDescInsteadOfPlayers = false;
+    this.hideWalkOnIcon = false;
+    this.wideScreenView = false;
+    this.wideViewOptions = {};
+    this.wideViewUseSport = false;
+    this.tableOffets = null;
+    this.sports;
+    this.autoRefreshFlag = false;
+    this.wRefreshSec = 12;
+    this.adminauthorizationcheckin = null;
+    this.adminauthorizationcheckinadmin = null;
+    this.developer = false;
+};
+
+var initHistory = function(params) {
+    // Create the history iframe and input field, append them to the document.
+    var iframe = document.createElement('iframe');
+    iframe.classList.add('yui-history');
+    document.body.appendChild(iframe);
+    var field = document.createElement('input');
+    field.type = 'hidden';
+    document.body.appendChild(field);
+    YAHOO.util.History.initialize(field, iframe);
+};
+
+baseViewer.prototype.initViewer = initViewer;
+baseViewer.prototype.initHistory = initHistory;
+
+/**
+ * Convert a time given in minutes from midnight into 12-hour format.
+ *
+ * @param {int} min Minutes from midnight.
+ * @return {String} The time in 12-hour AM/PM notation
+ */
+baseViewer.prototype.minToTimeStr = function(min) {
+    var hours = Math.floor(min / 60);
+    var mins = min % 60;
+    var date = new Date(null, null, null, hours, mins);
+    if(this.isMilitaryTime())
+        return YAHOO.util.Date.format(date, {format:'%H:%M'});
+    else
+    return YAHOO.util.Date.format(date, {format:'%l:%M %P'});
+};
+
+/**
+ * Create a filler div element used by the booking sheet for unbookable times.
+ * @param {int} start   Start time of the filler in minutes
+ * @param {int} end     End time of the filler in minutes
+ * @return {HTMLDivElement}
+ */
+baseViewer.prototype.generateFillerDiv = function(start, end, numcols) {
+    var div = document.createElement("div");
+    div.classList.add('timeslot');
+    div.classList.add('filler');
+    var height = (((end - start) / 2) * this.getZoomLevel() - 1) + (parseInt(this.getTextSize()) * ((end - start)/this.minIncrement));
+    if (this.isCollapsed()) 
+        height = (Math.floor(10*height/2))/10;
+    height += "px";
+    div.style.height = height;
+    if(this.selectedTheme == 'default_theme'){
+        if(numcols > 2){
+            div.style.width = Math.floor((this.courtViewerWidth - this.timeWidth) / numcols) + 'px';
+        }else{
+            div.style.width = Math.ceil((this.courtViewerWidth - this.timeWidth) / numcols) + 'px';
+        }
+    }else if(this.selectedTheme == 'wide_theme'){
+        if(numcols > 2){
+            div.style.width = (Math.floor((this.courtViewerWidth - this.timeWidth) / numcols) - 1) + 'px';
+        }else{
+            div.style.width = (Math.ceil((this.courtViewerWidth - this.timeWidth) / numcols) - 1) + 'px';
+        }    
+    }
+    return div;
+};
+
+baseViewer.prototype.getZoomLevel = function() {
+    return this.zoomLevel;
+};
+
+baseViewer.prototype.setZoomLevel = function(level, preventRender, noCookie) {
+    level = parseInt(level, 10);
+    level = Math.round(level);
+    if(level >= this.getMinZoomLevel()) {
+        // Set the cookie
+      if (!noCookie) {
+        var date = new Date();
+        date.setFullYear(date.getFullYear() + 1);
+        YAHOO.util.Cookie.set('cvZoom'+this.sport, level + '', {expires:date});
+      }
+        this.zoomLevel = level;
+        if(!preventRender) {            
+            this.render();
+        }
+    }
+};
+
+baseViewer.prototype.changeZoomLevel = function(inc, preventRender, noCookie) {
+    var level = this.getZoomLevel() + inc;
+    this.setZoomLevel(level, preventRender, noCookie);
+};
+
+// Functions for dealing with overlapping requests XHR requests. When a new request
+// is made, the old one is cancelled to prevent invalid data matchups.
+baseViewer.prototype.getCurrentRequest = function() {return this.currentRequest;};
+baseViewer.prototype.setCurrentRequest = function(o) {this.currentRequest = o;};
+baseViewer.prototype.clearCurrentRequest = function() {this.currentRequest = null;};
+
+baseViewer.prototype.isMilitaryTime= function() {return this.militaryTime;};
+baseViewer.prototype.setMilitaryTime = function(o) {this.militaryTime = o;};
+
+baseViewer.prototype.showDescriptionInsteadOfPlayers= function() {return this.showDescInsteadOfPlayers;};
+baseViewer.prototype.setShowDescriptionInsteadOfPlayers = function(o) {this.showDescInsteadOfPlayers = o;};
+
+baseViewer.prototype.getTextSize = function() {return this.textSize;};
+baseViewer.prototype.setTextSize = function(o) {this.textSize = o;};
+
+baseViewer.prototype.setWideView = function(o) {this.wideScreenView = o;};
+baseViewer.prototype.isWideView = function() {return this.wideScreenView;};
+
+baseViewer.prototype.setWideViewOptions = function(o) {
+    var self = this;
+    this.wideViewOptions = o;
+    this.setWideViewBookingOffset(o.bookingsAfterOffset * 60);
+    this.setWideViewRefreshInterval(o.gridRefreshInterval);
+    setInterval(function() { self.setAutoRefreshFlag(true); }, o.gridRefreshInterval * 60 * 1000);
+};
+baseViewer.prototype.getWideViewOptions = function() {return this.wideViewOptions;};
+
+baseViewer.prototype.setWideViewPage = function(o) {this.wideViewPage = o;};
+baseViewer.prototype.getWideViewPage = function() {return this.wideViewPage;};
+
+baseViewer.prototype.setWideViewUseSport = function(o) {this.wideViewUseSport = o;};
+baseViewer.prototype.isWideViewUseSport = function() {return this.wideViewUseSport;};
+
+baseViewer.prototype.setWideViewRefreshInterval = function(o) { this.wRefreshSec = o;}
+baseViewer.prototype.getWideViewRefreshInterval = function() {return this.wRefreshSec; };
+
+baseViewer.prototype.setAutoRefreshFlag = function(o){this.autoRefreshFlag = o;};
+baseViewer.prototype.getAutoRefreshFlag = function(){return this.autoRefreshFlag;};
+
+baseViewer.prototype.setClubName = function(o){this.clubName = o;};
+baseViewer.prototype.getClubName = function(){return this.clubName;};
+
+baseViewer.prototype.getDisplayTimeColumn = function() {return this.isGenerateHoursTd;};
+baseViewer.prototype.setDisplayTimeColumn = function(o) {
+    this.isGenerateHoursTd = o;
+    this.timeWidth = this.isGenerateHoursTd ? 60 : 0;
+    showTimeCol = this.isGenerateHoursTd ? true : false;
+};
+
+baseViewer.prototype.setToolTip = function(toolTip) {
+    if(toolTip)
+        this.toolTip = toolTip;
+};
+
+baseViewer.prototype.getToolTip = function() {
+    return this.toolTip;
+};
+
+baseViewer.prototype.isWeekview = function() {return this.weekview;};
+baseViewer.prototype.setWeekview = function(o) {this.weekview = o;};
+
+baseViewer.prototype.isMonthview = function() {return this.monthview;};
+baseViewer.prototype.setMonthview = function(o) {this.monthview = o;};
+
+baseViewer.prototype.isPlaceview = function() {return this.placeview;};
+baseViewer.prototype.setPlaceview = function(o) {this.placeview = o;};
+
+baseViewer.prototype.setOffsetsOfTable = function(o) {this.tableOffets = o;}
+baseViewer.prototype.getOffsetsOfTable = function() {return this.tableOffets;}
+
+baseViewer.prototype.setGridRefresh = function(o) {this.gridRefresh = o;};
+baseViewer.prototype.isGridRefresh = function() {return this.gridRefresh;};
+
+baseViewer.prototype.getMinZoomLevel = function() {return (this.minZoomLevel) ? this.minZoomLevel : 1;};
+baseViewer.prototype.setMinZoomLevel = function(o) {this.minZoomLevel = o;};
+
+baseViewer.prototype.getShowTimeSeconds = function() {return this.showTimeSeconds;};
+baseViewer.prototype.setShowTimeSeconds = function(o) {this.showTimeSeconds = o;};
+
+baseViewer.prototype.isAdmin = function() {return this.admin;};
+baseViewer.prototype.setAdmin = function(o) {this.admin = o;};
+
+baseViewer.prototype.getAdminauthorizationcheckin = function() {return this.adminauthorizationcheckin;};
+baseViewer.prototype.setAdminauthorizationcheckin = function(o) {this.adminauthorizationcheckin = o;};
+
+baseViewer.prototype.getAdminauthorizationcheckinadmin = function() {return this.adminauthorizationcheckinadmin;};
+baseViewer.prototype.setAdminauthorizationcheckinadmin = function(o) {this.adminauthorizationcheckinadmin = o;};
+
+baseViewer.prototype.isDeveloper = function() {return this.developer;};
+baseViewer.prototype.setDeveloper = function(o) {this.developer = o;};
+
+baseViewer.prototype.isBookingDisabled = function() {return this.bookingDisabled;};
+baseViewer.prototype.setBookingDisabled = function(o) {this.bookingDisabled = o;};
+
+baseViewer.prototype.getUserId = function() {return this.userId;};
+baseViewer.prototype.setUserId = function(o) {this.userId = o;};
+
+baseViewer.prototype.getShowAllCheckboxes = function() {return this.showAllCheckboxes;};
+baseViewer.prototype.setShowAllCheckboxes = function(o) {this.showAllCheckboxes = o;};
+
+baseViewer.prototype.getSports = function() {return this.sports;};
+baseViewer.prototype.setSports = function(o) {this.sports = o;};
+
+baseViewer.prototype.getCurrTimestamp = function() {return this.currTimestamp;};
+baseViewer.prototype.setCurrTimestamp = function(o) {this.currTimestamp = o;};
+
+baseViewer.prototype.getCurrTime = function() {return this.currTime;};
+baseViewer.prototype.setCurrTime = function(o) {this.currTime = o;};
+
+baseViewer.prototype.getCurrDate = function() {return this.currDate;};
+baseViewer.prototype.setCurrDate = function(o) {this.currDate = o;};
+
+baseViewer.prototype.isCollapsed = function() {return this.collapsed;};
+baseViewer.prototype.setCollapsed = function(o) {this.collapsed = o;};
+
+baseViewer.prototype.getCheckinRange = function() {return this.checkinRange;};
+baseViewer.prototype.setCheckinRange = function(o) {this.checkinRange = o;};
+
+baseViewer.prototype.getUserCanCheckinAll = function() {return this.userCanCheckinAll;};
+baseViewer.prototype.setUserCanCheckinAll = function(o) {this.userCanCheckinAll = o;};
+
+baseViewer.prototype.isCheckinEnabled = function() {return this.checkinEnabled;};
+baseViewer.prototype.setCheckinEnabled = function(o) {this.checkinEnabled = o;};
+
+baseViewer.prototype.isCheckinViewable = function() {return this.checkinViewable;};
+baseViewer.prototype.setCheckinViewable = function(o) {this.checkinViewable = o;};
+
+baseViewer.prototype.getCheckinOrNoShow = function() {return this.checkinOrNoShow;};
+baseViewer.prototype.setCheckinOrNoShow = function(o) {this.checkinOrNoShow = o;};
+
+baseViewer.prototype.isCheckinDisable = function() {return this.checkinDisable;};
+baseViewer.prototype.setCheckinDisable = function(o) {this.checkinDisable = o;};
+
+baseViewer.prototype.getMresData = function() {return this.mresData;};
+baseViewer.prototype.setMresData = function(o) {this.mresData = o;};
+
+baseViewer.prototype.getHideWalkOnIcon = function() {return this.hideWalkOnIcon;};
+baseViewer.prototype.setHideWalkOnIcon = function(o) {this.hideWalkOnIcon = o;};
+
+
+
+baseViewer.prototype.getOpen = function() {return this.openTime;};
+baseViewer.prototype.setOpen = function(o) {
+    // Open time rounded down to previous hour
+//    this.openTime = Math.floor(o/60)*60;
+    this.openTime = o;
+};
+
+//get the current time of the server for the wide view
+baseViewer.prototype.getCTime = function() {return this.curTime;};
+baseViewer.prototype.setCTime = function(o) {
+    this.curTime = o;
+};
+
+// Close time setting/getting
+baseViewer.prototype.getClose = function() {return this.closeTime;};
+baseViewer.prototype.setClose = function(o) {
+    // Close time rounded up to next hour
+//    this.closeTime = Math.ceil(o/60)*60;
+    this.closeTime = o;
+};
+
+/**
+ * Get the current date the court viewer is set to.
+ *
+ * @return {Date}
+ */
+baseViewer.prototype.getDate = function() {return this.currentDate;};
+/**
+ * Set the date the courtviewer is set to.
+ * This will cause a refresh of data.
+ *
+ * @param {Date} o The new date
+ */
+baseViewer.prototype.setDate = function(o) {
+    this.currentDate = o;
+    this.refresh();
+};
+/**
+ * Get a y-M-d string for the given date. If no date is given, defaults to the
+ * court viewer's default date.
+ *
+ * @param {Date} date   OPTIONAL date to convert to string.
+ * @return {String}     The y-M-d version of the given date.
+ */
+baseViewer.prototype.getDateStr = function (date) {
+    if(!date) {
+        date = this.getDate();
+    }
+    return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+};
+/**
+ * Given a date in y-M-d format, return a date object with that date.
+ *
+ * @param {String} datestr Date in y-M-d format.
+ * @return {Date}
+ */
+baseViewer.prototype.getDateFromStr = function(datestr) {
+    var split = datestr.split('-');
+    var date = new Date(split[0], split[1] - 1, split[2]);
+    return date;
+};
+/**
+ * Set the court viewer's current date using a string with y-M-d format.
+ *
+ * @param {String} datestr The new date to use in y-M-d format.
+ */
+baseViewer.prototype.setDateStr = function(datestr) {
+    this.setDate(this.getDateFromStr(datestr));
+};
+
+/**
+ * Advance the date by days amount of days. A negative number results in moving
+ * backwards.
+ *
+ * @param {int} days The number of days to move forward.
+ */
+baseViewer.prototype.advanceDate = function(days) {
+    var date = this.getDate();
+    date.setDate(date.getDate() + days);
+    YAHOO.util.History.navigate('date', this.getDateStr(date));
+};
+
+baseViewer.prototype.setReservationTypes = function(rtypes) {this.rtypes = rtypes;};
+baseViewer.prototype.getReservationTypes = function() {return this.rtypes;};
+
+baseViewer.prototype.setLocations = function(o) {this.columns = o;};
+baseViewer.prototype.getLocations = function() {return this.columns;};
+
+baseViewer.prototype.setTimeTextColor = function(o) {this.timeTextColor = o;};
+baseViewer.prototype.getTimeTextColor = function() {return this.timeTextColor;};
+
+baseViewer.prototype.generateTopHeader = function() {
+    var div = document.createElement('div');
+    div.setAttribute('id', 'topHeader');
+    //div.style.height = '35px';
+
+    var dateDiv = document.createElement('div');
+    dateDiv.setAttribute('id', 'cv_date');
+    //dateDiv.style.float = 'left';
+
+    var monthSpan = document.createElement('span');
+    monthSpan.classList.add('icon');
+    monthSpan.classList.add('icon_date');
+    var monthText = YAHOO.util.Date.format(this.getDate(), {format:'%B'});
+    monthSpan.appendChild(document.createTextNode(monthText));
+    dateDiv.appendChild(monthSpan);
+
+    var outerCalContainer = document.createElement('div');
+    outerCalContainer.style.display = 'block';
+    var calContainer = document.createElement('div');
+    calContainer.id = 'calContainer';
+    outerCalContainer.appendChild(calContainer);
+    dateDiv.appendChild(outerCalContainer);
+
+    var cv = this;
+
+    YAHOO.util.Event.addListener(monthSpan, 'click', function() {
+        var date = cv.getDate();
+        var cal = new YAHOO.widget.CalendarGroup('cvcal', calContainer, {/*title:'Choose a date:',*/ close:true});
+        cal.select(date);
+        cal.cfg.setProperty("pagedate", (date.getMonth()+1) + "/" + date.getFullYear());
+        cal.cfg.setProperty("locale_weekdays", "medium");
+        var handleSelect = function(type,args,cal) {
+            var dates = args[0];
+            var date = dates[0];
+            var year = date[0], month = date[1], day = date[2];
+            var dateStr = year + '-' + month + '-' + day;
+            cal.hide();
+            YAHOO.util.History.navigate('date', dateStr);
+        };
+
+        cal.selectEvent.subscribe(handleSelect, cal);
+
+        cal.render();
+        cal.show();
+    });
+
+    div.appendChild(dateDiv);
+
+    var todayDiv = document.createElement('div');
+    todayDiv.setAttribute('id','cv_today'); 
+    var a = document.createElement('a');
+    if(this.selectedTheme == 'default_theme'){
+        a.setAttribute('class','today_old');
+    }else if(this.selectedTheme == 'wide_theme'){
+        a.setAttribute('class','today_new');
+    }
+    var currentDate = new Date();
+    var ymdString = YAHOO.util.Date.format(currentDate, {format:'%F'});
+    YAHOO.util.Event.addListener(a, "click", function(e, o){
+        YAHOO.util.History.navigate('date', o);
+        window.location+'#date='+o+'&group=null';
+    }, ymdString);
+    a.appendChild(document.createTextNode('Today'));
+    todayDiv.appendChild(a);
+    div.appendChild(todayDiv);
+
+    var timeDiv = document.createElement('div');
+    timeDiv.setAttribute('id','cv_time');
+    var timeSpan = document.createElement('span');
+    timeSpan.setAttribute('id','servertime');
+    timeSpan.appendChild(document.createTextNode(this.getCurrTime()));
+    timeDiv.appendChild(timeSpan);
+    div.appendChild(timeDiv);
+
+    var actionsDiv = document.createElement('div');
+    actionsDiv.setAttribute('id','cv_actions');
+
+//    if (this.isWaitlistEnabled()) {
+//        var spanWaitlist = document.createElement('span');
+//        spanWaitlist.classList.add('icon');
+//        spanWaitlist.classList.add('icon_wait');
+//        spanWaitlist.classList.add('icon_left');
+//
+//        var a = document.createElement('a');
+//        if (this instanceof courtViewer) {
+//            a.href = this.urls.waitlist + '/sport/' + this.sport;
+//        }
+//        a.appendChild(document.createTextNode('Waitlist'));
+//        spanWaitlist.appendChild(a);
+//        actionsDiv.appendChild(spanWaitlist);
+//    }
+//
+//    if (this.isLadderEnabled()) {
+//        var spanLadder = document.createElement('span');
+//        spanLadder.classList.add('icon_ladder');
+//
+//        var a = document.createElement('a');
+//        if (this instanceof courtViewer) {
+//            a.href = this.urls.ladder;
+//        }
+//        a.appendChild(document.createTextNode('All Ladders'));
+//        spanLadder.appendChild(a);
+//        actionsDiv.appendChild(spanLadder);
+//    }
+
+    return [div, actionsDiv];
+};
+
+baseViewer.prototype.getDayStrings = function(numDays) {
+    var tempDate = new Date(this.getDate().getTime());
+    var currentDate = new Date();
+    var dayStrings = [];
+//    if(tempDate.getDay() < currentDate.getDay()) {
+//        tempDate.setDate(tempDate.getDate() - (7 - (currentDate.getDay() - tempDate.getDay())));
+//    } else if (tempDate.getDay() > currentDate.getDay()) {
+//        tempDate.setDate(tempDate.getDate() - (tempDate.getDay() - currentDate.getDay()));
+//    }
+    tempDate.setDate(tempDate.getDate());
+    dayStrings[0] = new Date(tempDate.getTime());
+
+    for (i = 1; i < numDays; i++) {
+        tempDate.setDate(tempDate.getDate() + 1);
+        dayStrings[i] = new Date(tempDate.getTime());
+    }
+
+    return dayStrings;
+};
+
+/**
+ * Generate the date selector used for picking the day of the week, as well
+ * as advancing forward and backward in 1 week intervals.
+ *
+ * @return {HTMLTableElement}
+ */
+baseViewer.prototype.generateDateHeader = function() {
+
+    // main container
+    var dateSelector = document.createElement('div');
+    dateSelector.setAttribute('id', 'dateSelector');
+
+    var leftArrow = document.createElement('div');
+    leftArrow.setAttribute('id','dateSelector-left');
+    leftArrow.classList.add('cv_date_arrow');
+
+    var rightArrow = document.createElement('div');
+    rightArrow.setAttribute('id', 'dateSelector-right');
+    rightArrow.classList.add('cv_date_arrow');
+
+    var picker = document.createElement('div');
+    picker.setAttribute('id', 'dateSelector-picker');
+
+    // start tabs setup
+    var ul = document.createElement('ul');
+    var li, a, span, i, dateStr, ymdString;
+    var dayStrings = this.getDayStrings(8);
+
+    for(i = 0; i < 8; i++) {
+        li = document.createElement('li');
+        a = document.createElement('a');
+        a.href = 'javascript:void(0);'; // to get a mouse pointer on hover
+        span = document.createElement('span');
+
+        dateStr = YAHOO.util.Date.format(dayStrings[i], {format:'%A %e'});
+        if (i==7 && dateStr.match(/^W/))
+            dateStr = YAHOO.util.Date.format(dayStrings[i], {format:'%a %e'});
+
+        span.appendChild(document.createTextNode(dateStr));
+        a.appendChild(span);
+
+        // is this the active tab?
+        if(dayStrings[i].getTime() == this.getDate().getTime()) {
+            li.classList.add("active");
+        }else {
+            li.classList.add("inactive");
+            ymdString = YAHOO.util.Date.format(dayStrings[i], {format:'%F'});
+            YAHOO.util.Event.addListener(a, "click", function(e, o){
+                YAHOO.util.History.navigate('date', o);
+            }, ymdString);
+        }
+
+        li.appendChild(a);
+        ul.appendChild(li);
+    }
+
+    // put everything together
+    picker.appendChild(ul);
+
+    dateSelector.appendChild(this.generateArrow('left'));
+    //dateSelector.appendChild(timeDiv);
+    dateSelector.appendChild(picker);
+    dateSelector.appendChild(this.generateArrow('right'));
+
+    return dateSelector;
+};
+
+/**
+ * Given an array of time objects and an array of booking objects: Split the timeslots into one
+ * chunk for each increment, rather than large blocks. Go through all the timeslots,
+ * removing any that conflict with any of the bookings. Merge the two arrays, and
+ * sort by start time in minutes ascending.
+ *
+ * @param {Array} times
+ * @param {Array} bookings
+ * @return {Array}
+ */
+baseViewer.prototype.generateSlots = function(times, bookings, timeCol, unavailable , staff,tsn) {
+    var i, j, u, slots = new Array();
+    if (timeCol) {
+        bookings = null;
+        unavailable = null;
+    }
+    // Create a new timeslot array with separated timeslots.
+    var timeslots = new Array(), ts;
+    for(i in times) {
+        for(j = 0; j < times[i].d; j += times[i].i) {
+            if (!this.lockIt && times[i].i< this.minIncrement)
+                this.minIncrement = times[i].i;
+            if(times[i].t+j+times[i].i<=(times[i].d+times[i].t)) {
+            if(this.isPlaceview() && times[i].sid){
+                   ts = {
+                       t: times[i].t + j,
+                       d: times[i].i,
+                       e: times[i].e,
+                       s: times[i].s,
+                       n: staff,
+                       tsn:tsn,
+                       h: times[i].h,
+                       p: times[i].p,
+                       staff: times[i].staff,
+                       sid : times[i].sid
+                   };
+               }else{
+                   ts = {
+                       t: times[i].t + j,
+                       d: times[i].i,
+                       e: times[i].e,
+                       s: times[i].s,
+                       n: staff,
+                       tsn:tsn,
+                       h: times[i].h,
+                       p: times[i].p,
+                       staff: times[i].staff
+                   };
+               }
+            if(this.isWideView()){
+                if(ts.t+ts.d >= this.getOpen() && ts.t+ts.d <= this.getClose())
+                      timeslots.push(ts);
+            }else{
+                timeslots.push(ts);
+            }
+        }
+    }
+    }
+
+    // Create slots array, removing conflicting timeslots
+    var conflict, bStart, bEnd, uStart, uEnd, tStart, tEnd, tempTimeslots;
+
+    if(isAllowedCustomTiming != undefined && isAllowedCustomTiming){
+        for(i in timeslots) {
+            conflict = false;
+            tStart = timeslots[i].t;
+            tEnd = tStart + timeslots[i].d;
+            tempTimeslots = new Array();
+            tempTimeslots.push(timeslots[i]);
+            tempTimeslots = this.generateInnerTimeSlots(tempTimeslots, bookings);
+
+            for(u in unavailable) {
+                uStart = unavailable[u].t;
+                uEnd = uStart + unavailable[u].d;
+                if(uStart < tEnd && uEnd > tStart) {
+                    conflict = true;
+                    break;
+                }
+            }
+            if (timeCol)
+                for(j in tempTimeslots)
+                    slots.push({type:'timecol', data:tempTimeslots[j]});
+            else
+                if(!conflict) {
+                for(j in tempTimeslots)
+                    slots.push({type:'timeslot', data:tempTimeslots[j]});
+        }
+        }
+    }else{
+        for(i in timeslots) {
+            conflict = false;
+            tStart = timeslots[i].t;
+            tEnd = tStart + timeslots[i].d;
+
+            for(j in bookings) {
+                bStart = bookings[j].t;
+                bEnd = bStart + bookings[j].d;
+                if(bStart < tEnd && bEnd > tStart) {
+                    conflict = true;
+                    break;
+                }
+            }
+            
+            for(u in unavailable) {
+                uStart = unavailable[u].t;
+                uEnd = uStart + unavailable[u].d;
+                if(uStart < tEnd && uEnd > tStart) {
+                    conflict = true;
+                    break;
+                }
+            }
+            if(!conflict) {
+                if (timeCol)
+                    slots.push({type:'timecol', data:timeslots[i]});
+                else
+                    slots.push({type:'timeslot', data:timeslots[i]});
+            }
+        }
+    }
+
+    for(u in unavailable) {
+        conflict = false;
+        tStart = unavailable[u].t;
+        tEnd = tStart + unavailable[u].d;
+        for(j in bookings) {
+            bStart = bookings[j].t;
+            bEnd = bStart + bookings[j].d;
+            if(bStart < tEnd && bEnd > tStart) {
+                conflict = true;
+                break;
+            }
+        }
+        if(!conflict) {
+            tempTimeslots = new Array();
+            tempTimeslots.push(unavailable[u]);
+            tempTimeslots = this.generateInnerTimeSlots(tempTimeslots, bookings);
+            for(j in tempTimeslots)
+                slots.push({type:'unavailable', data:tempTimeslots[j]});
+        }
+    }
+
+    for(i in bookings) {
+            slots.push({type:'booking', data:bookings[i]});
+        }
+    slots.sort(function(a, b) {
+        return a.data.t-b.data.t;
+    });
+    if(this.isWideView()){
+        var wideViewSlots = Array();
+        for(i=0;i<slots.length;i++){
+            if(slots[i].data.t>= this.getOpen() && slots[i].data.t <= this.getClose()){
+                wideViewSlots.push(slots[i]);
+            } else {
+                for(var b in bookings) {
+                    if(bookings[b].t == slots[i].data.t && slots[i].data.t+slots[i].data.d >= this.getCTime() && slots[i].data.t+slots[i].data.d<= this.getClose()){
+                        wideViewSlots.push(slots[i]);
+                    }
+                }
+            }
+        }
+         slots=wideViewSlots;
+    }
+
+    return slots;
+};
+
+/**
+ * Given an array of time objects and an array of booking objects: Go through the timeslots and
+ * split timeslot if that conflict with any of the bookings. Recurse function and at the end return 
+ * array of timeslots.
+ *
+ * @param {Array} timeslots
+ * @param {Array} bookings
+ * @return {Array}
+ */
+baseViewer.prototype.generateInnerTimeSlots = function(timeslots, bookings){
+    var tStart, tEnd, tempTS;
+    for(i in timeslots) {
+            tStart = timeslots[i].t;
+            tEnd = tStart + timeslots[i].d;
+
+            for(j in bookings) {
+                if (timeslots[i] != undefined && timeslots[i].d == 0) {
+                    break;
+                }
+                //to display long bookings in wideview with their color
+                if(this.isWideView() && bookings[j].d > '120'){
+                    bookings[j].d = 180;
+                }
+                bStart = bookings[j].t;
+                bEnd = bStart + bookings[j].d;
+                if(bStart <= tStart && bEnd >= tEnd){timeslots.splice(i, 1);continue;}
+                if(bStart < tEnd && bEnd > tStart) {
+
+                    if(bStart <= tStart){
+                        if(timeslots[i] != undefined){
+                            timeslots[i].t= bEnd;
+                            timeslots[i].d-=(bEnd-tStart);
+                            tStart = bEnd;
+                        }
+                    }else if(bEnd >= tEnd){
+                        if(timeslots[i] != undefined){
+                            timeslots[i].d-=(tEnd-bStart);
+                            tEnd = bStart;
+                        }
+                    }else{
+                        tempTS = {};
+                        tempTS.t= tStart;
+                        tempTS.d=bStart-tStart;
+                        timeslots.push(tempTS);
+
+                        tempTS = {};
+                        tempTS.t= bEnd;
+                        tempTS.d=tEnd-bEnd;
+
+                        timeslots.push(tempTS);
+                        timeslots.splice(i, 1);
+                        this.generateInnerTimeSlots(timeslots, bookings);
+                    }
+                /* @todo check necessity for this code*/
+//                    if(bookings[j].c != undefined && timeslots[i] != undefined) {
+//                        timeslots[i].n = bookings[j].c;
+//                    }
+                    }
+                }
+            }
+    return timeslots;
+};
+
+/**
+ * Generate a basic slot div element used as the base for timeslots and booking
+ * slots.
+ *
+ * @param {Object} slot Slot object containing a duration property to calculate the
+ *                      height of the div with.
+ * @return {HTMLDivElement}
+ */
+baseViewer.prototype.generateSlotDiv = function(slot, timeCol) {
+    var div = document.createElement("div");
+    div.classList.add("timeslot");
+    var numSlots = slot.d/this.minIncrement;
+    div.style.height = ((slot.d / 2) * this.getZoomLevel() - 1 + (this.getTextSize()) * numSlots) + "px";
+    // Mouse hovering events
+    if (!timeCol) {
+//        YAHOO.util.Event.addListener(div, "mouseover", function(e, cell){
+//              cell.classList.add("hover");
+//        }, div);
+//        YAHOO.util.Event.addListener(div, "mouseout", function(e, cell){
+//             cell.classList.remove("hover");
+//        }, div);
+    }
+
+    return div;
+};
+
+/**
+ * Generate a timeslot div, that when clicked on will go to the booking page for
+ * the data contained in the given information:
+ *
+ * @param {int} locId ID of the court/room to book on when clicked.
+ * @param {String} datestr   Date the booking will take place.
+ * @param {Object} time Object containing time information.
+ * @param {bool} odd    Whether or not the slot is odd on the sheet.
+ * @return {HTMLDivElement}
+ */
+baseViewer.prototype.generateTimeDiv = function(locId, datestr, time, odd, timeCol) {
+    var div = this.generateSlotDiv(time, timeCol);
+    var cv = this;
+
+    if (timeCol) {
+        div.classList.add("timeCol");
+        if(!this.isWideView()){
+            div.style.width = this.timeWidth + 'px';}
+    } else if (odd) div.classList.add("odd");
+
+    var timeDescription = false;
+    if(!timeCol && time.e) {
+        var timeDescText;
+        if (timeCol)
+            timeDescText = document.createTextNode("\n"+time.e);
+        else
+            timeDescText = document.createTextNode(time.e);
+        timeDescription = document.createElement('span');
+        timeDescription.appendChild(document.createTextNode('\u00a0'));
+        timeDescription.appendChild(timeDescText);
+        if (timeCol)
+            timeDescription.style.color = "#E88";
+        else
+            timeDescription.style.color = "#c30";
+    }
+
+    var timeDiv = document.createElement('div');
+    timeDiv.classList.add('time');
+    if(this.getTimeTextColor())
+        timeDiv.style.color = this.getTimeTextColor();
+    timeDiv.appendChild(document.createTextNode(this.minToTimeStr(time.t)));
+    if (timeDescription) {
+        timeDiv.appendChild(timeDescription);
+    }
+    div.appendChild(timeDiv);
+
+    var slotClicked = false;
+    // Court booking click event
+    if (!timeCol && (this.isAdmin() || !this.isBookingDisabled())) {
+        YAHOO.util.Event.addListener(div, "click", function(e, o){
+            if (slotClicked) return;
+            slotClicked = true;
+            var loc = cv.urls.book;
+            loc += '/'+cv.entity+'/' + o.c;
+            loc += '/date/' + o.d;
+            loc += '/time/' + o.t;
+            window.location = loc;
+        }, {c:locId, d:datestr, t:time.t, cv:this});
+        div.style.cursor = 'pointer';
+    }
+
+    return div;
+};
+
+baseViewer.prototype.generateUnavailableDiv = function(time) {
+    var div = this.generateSlotDiv(time);
+    var timeDiv = document.createElement('div');
+    timeDiv.classList.add('time');
+    if(this.getTimeTextColor())
+        timeDiv.style.color = this.getTimeTextColor();
+    timeDiv.appendChild(document.createTextNode(this.minToTimeStr(time.t)));
+    if(this.isAdmin() && time.unstaff){
+        var staffDiv = document.createElement('div');
+        staffDiv.classList.add('name');
+        staffDiv.appendChild(document.createTextNode(time.unstaff +" Unavailable"));
+        div.appendChild(staffDiv);
+    }
+    if (YAHOO.util.Dom.inDocument('rt-'+time.i)) {
+        div.style.backgroundColor = document.getElementById('rt-' + time.i).style.backgroundColor;
+    } else {
+        div.style.backgroundColor = "#D5D5D5";
+}
+    if (time.sid && this.isAdmin()) {
+        var editDiv = document.createElement('div');
+        editDiv.appendChild(document.createTextNode('Edit'));
+        editDiv.classList.add('edit');
+        YAHOO.util.Event.addListener(editDiv, 'click', function(e,o){
+            window.location = o.cv.editScheduleUrl + '/id/' + time.sid;
+        },{cv:this});
+        div.appendChild(editDiv);
+    }
+
+    var rightDiv = document.createElement('div');
+    rightDiv.classList.add('right');
+    if(time.n){
+        var notesImg = new Image();
+        notesImg.title = time.n;
+        notesImg.src = "/r/img/scheduling/icon_notes_small.gif";
+        notesImg.classList.add('notes');
+        rightDiv.appendChild(notesImg);
+    }
+    div.appendChild(timeDiv);
+    div.appendChild(rightDiv);
+    return div;
+};
+/**
+ * Generate a booking div used to represent an existing booking on the booking
+ * sheet. If the correct info is given, draw the names and an edit button.
+ *
+ * @param {Object} booking  Object containing booking information
+ * @return {HTMLDivElement}
+ */
+baseViewer.prototype.generateBookingDiv = function(booking, numcols) {
+    var div = this.generateSlotDiv(booking);
+    var nameDiv = document.createElement('div');
+    nameDiv.classList.add('names');
+    if(this.selectedTheme == 'default_theme'){
+        nameDiv.style.width = (Math.floor((this.courtViewerWidth - this.timeWidth) / numcols * 0.95)) + 'px';
+        nameDiv.style.paddingLeft = '3px';
+    }else if(this.selectedTheme == 'wide_theme'){
+        nameDiv.style.width = (Math.floor((this.courtViewerWidth - this.timeWidth) / numcols * 0.95) - 1) + 'px';
+    }
+    if(numcols>10){
+    nameDiv.style.wordBreak = 'break-word';
+    nameDiv.style.whiteSpace = 'normal';
+    }
+    // Sizes in pixels of elements
+    var nameMargin = 7;
+    var pHeight = this.getTextSize();
+    var spaceAvail = ((booking.d/2)*this.getZoomLevel()-1)-nameMargin;
+    var tooBig = false;
+    var text = '', textNum;
+
+    if(booking.z){
+        var tempClubNumber = booking.l;
+        booking.l='Temp Booking';
+        div.style.backgroundColor = '#3cf';
+    }else if(booking.m&&this.mresData[booking.m])
+        div.style.backgroundColor = '#' + this.mresData[booking.m].c;
+    else {
+        if (YAHOO.util.Dom.inDocument('rt-'+booking.i)) {
+            div.style.backgroundColor = document.getElementById('rt-' + booking.i).style.backgroundColor;
+        } else {
+            div.style.backgroundColor = '#' + booking.i;
+        }
+    }    
+    var titleDiv = document.createElement('div');
+    titleDiv.classList.add('title');
+    if(this.getTimeTextColor())
+        titleDiv.style.color = this.getTimeTextColor();
+
+    var timeSpan = document.createElement('span');
+    timeSpan.appendChild(document.createTextNode(this.minToTimeStr(booking.t)));
+
+    if (booking.w && !this.getHideWalkOnIcon()) {
+        var walkOn = document.createElement('span');
+        walkOn.appendChild(document.createTextNode('w'));
+        walkOn.setAttribute('style', 'padding-left:4px;color:#FEDF00 !important;');
+        timeSpan.appendChild(walkOn);
+    }
+
+    var descSpan = document.createElement('span');
+    var descAvail = false;
+    descSpan.classList.add('desc');
+    var linkClass = document.createElement('a');
+    linkClass.classList.add('link_class');
+
+    if(!booking.l){
+        if (booking.m && this.mresData[booking.m]) {
+            var descText = this.mresData[booking.m].d ? this.mresData[booking.m].d :'';
+            descSpan.appendChild(document.createTextNode(descText));
+            descAvail = true;
+            timeSpan.classList.add('time-booked');
+            titleDiv.appendChild(timeSpan);
+	    if(this.mresData[booking.m].inst_id){
+                
+                var eventLink = '';
+		if (this.isAdmin()) {
+		    if(this.mresData[booking.m].roster_type == 'Individual'){
+                        eventLink = '/manager/cne/event/view/instanceid/' + this.mresData[booking.m].inst_id;			
+		    } else {
+                        eventLink = '/manager/cne/event/view/eventid/' + this.mresData[booking.m].eventid;			
+		    }
+		} else {
+		    if(this.mresData[booking.m].roster_type == 'Individual'){
+                        eventLink = '/cne/event/view/instanceid/' + this.mresData[booking.m].inst_id;			
+		    } else {
+                        eventLink = '/cne/event/view/eventid/' + this.mresData[booking.m].eventid;			
+		    }
+		}
+                linkClass.setAttribute('href', eventLink);
+		linkClass.appendChild(document.createTextNode(this.mresData[booking.m].club_id));
+                this.mresData[booking.m].link = eventLink;
+		//titleDiv.appendChild(linkClass);
+	    }
+            
+            if (!this.showDescriptionInsteadOfPlayers())
+            titleDiv.appendChild(descSpan);
+            var cneDetails = document.createElement('div');
+            var curHeight = YAHOO.util.Dom.getStyle(div, "height").replace(/[^\.0-9]/g,'');
+            if (curHeight > 20) {
+                 var detailsHeight = ((Math.floor(10*curHeight/2))/10);
+                 cneDetails.style.height = detailsHeight + 'px';
+                 cneDetails.style.lineHeight = detailsHeight + 'px';
+            }
+            cneDetails.classList.add('cne-details');
+            var detailsLink = document.createElement('a');
+            detailsLink.setAttribute('href', 'javascript:;');
+            detailsLink.appendChild(document.createTextNode('Details'));
+            YAHOO.util.Event.addListener(detailsLink, 'click', function(e, o){
+               cv.showCNEDialog(o.event);
+            }, {event:this.mresData[booking.m], cv:this});
+            cneDetails.appendChild(detailsLink);
+            
+        }else{
+            if(walkOn)
+                walkOn.setAttribute('style', 'padding-left:4px;');
+            booking.l="";
+            titleDiv.classList.remove("title");
+            titleDiv.classList.add('timenotitle');
+            if(this.selectedTheme == 'wide_theme'){
+                titleDiv.setAttribute('style', 'margin-left:0;');
+            }
+            titleDiv.appendChild(timeSpan);
+        }
+    }else{
+        descSpan.appendChild(document.createTextNode(booking.l));
+        descAvail = true;
+        timeSpan.classList.add('time-booked');
+        titleDiv.appendChild(timeSpan);
+        if (!this.showDescriptionInsteadOfPlayers())
+        titleDiv.appendChild(descSpan);
+    }
+
+    if (booking.o && booking.o.icon_image) {
+        var subTypeIcon = document.createElement('span');
+        subTypeIcon.style.paddingLeft = '3px';
+        subTypeIcon.style.opacity = '1';
+        subTypeIcon.innerHTML = "<img alt='"+booking.o.name+"' src='/r/img/scheduling/"+booking.o.icon_image+"'/>";
+        titleDiv.appendChild(subTypeIcon);
+    }
+    
+    div.appendChild(titleDiv);
+    if (cneDetails && this.mresData[booking.m].inst_id) {
+        div.appendChild(cneDetails);
+    }
+    spaceAvail -= 10;
+    var playerLinkArr = [];
+
+    var rightDiv = document.createElement('div');
+    rightDiv.classList.add('right');
+    
+    if (booking.tm && this.isAdmin()) {
+        var multiBookImg = new Image();
+        multiBookImg.src = "/r/img/therapy/multi_booking.png";
+        multiBookImg.classList.add('multi-booking-img');
+        div.appendChild(multiBookImg);
+    }
+    
+    if(booking.n){
+        var notesImg = new Image();
+        notesImg.title = booking.n;
+        notesImg.src = "/r/img/scheduling/icon_notes_small.gif";
+        notesImg.classList.add('notes');
+        
+        if(this.showToolTip) {
+            YAHOO.util.Event.addListener(rightDiv , "mouseover", function() { 
+                //rightDiv.style.zIndex = '999';
+                var tooltip = rightDiv.parentNode.previousSibling;
+                tooltip.setAttribute("style","opacity: 0;");
+            });
+            YAHOO.util.Event.addListener(rightDiv , "mouseout", function() { 
+                //rightDiv.style.zIndex = '0';
+                var tooltip = rightDiv.parentNode.previousSibling;
+                tooltip.setAttribute("style","z-index: 99; visibility: visible; left: 588px; top: 1889px; width: 189px;");
+            });
+        }
+        rightDiv.appendChild(notesImg);
+    }
+    
+    if(booking.cn){
+        var clientNotesImg = new Image();
+        clientNotesImg.title = booking.cn;
+        clientNotesImg.src = "/r/img/scheduling/icon_notes_small.gif";
+        clientNotesImg.classList.add('notes');
+        clientNotesImg.setAttribute("style","filter: grayscale(100%);");
+        
+        if(this.showToolTip) {
+            YAHOO.util.Event.addListener(rightDiv , "mouseover", function() { 
+                //rightDiv.style.zIndex = '999';
+                var tooltip = rightDiv.parentNode.previousSibling;
+                tooltip.setAttribute("style","opacity: 0;");
+            });
+            YAHOO.util.Event.addListener(rightDiv , "mouseout", function() { 
+                //rightDiv.style.zIndex = '0';
+                var tooltip = rightDiv.parentNode.previousSibling;
+                tooltip.setAttribute("style","z-index: 99; visibility: visible; left: 588px; top: 1889px; width: 189px;");
+            });
+        }
+        rightDiv.appendChild(clientNotesImg);
+    }
+
+    if(booking.r) {
+        var resImg = new Image();
+        resImg.src = "/r/img/scheduling/resource_img.png";
+        resImg.classList.add('res-img');
+        rightDiv.appendChild(resImg);
+    }
+    
+    if(rightDiv.innerHTML != '')div.appendChild(rightDiv);
+    
+    if (booking.j) {
+        var p = document.createElement('div');
+        if(this.selectedTheme == 'default_theme'){
+            p.setAttribute('style','color:black;text-align:left;padding:0;line-height:0.9em;margin:0;margin-left:4px;margin-top:4px;');
+            p.appendChild(document.createTextNode('Instr: '+booking.j));
+        }else if(this.selectedTheme == 'wide_theme'){
+            p.setAttribute('style','color:black;text-align:left;padding:0;line-height:0.9em;margin:0;margin-left:4px;margin-top:4px;white-space: nowrap;');
+            p.appendChild(document.createTextNode('C: '+booking.j));
+        }
+        div.appendChild(p);
+    }
+
+    if (descAvail && this.showDescriptionInsteadOfPlayers()) {
+        div.appendChild(descSpan);
+    } else if (booking[this.occupants] ) {
+        var userInBooking = false;
+        var i, a, p, length = booking[this.occupants].length;
+        var a;
+        var linkTitleArr = [], linkTitle = '';
+
+        for(i = 0; i < length; i++)
+            linkTitleArr[i] = booking[this.occupants][i]['n'];
+        textNum = 0;
+        for(i = 0; i < length; i++) {
+            p = document.createElement('div');
+            p.classList.add('pname');
+            p.classList.add('table-pname');
+            if(numcols>10){
+                p.setAttribute('style','text-align:left;padding:1px 0px 9px 0px;line-height:15px;margin:0;margin-left:1px;');
+            }else{
+                p.setAttribute('style','text-align:left;padding:1px 0px 2px 0px;line-height:15px;margin:0;margin-left:1px;');
+            }
+            a = document.createElement('a');
+            a.setAttribute('style','text-decoration:none');
+            a.classList.add('name-bx');
+            /*if(i < length - 1 && (i + 1) * pHeight > spaceAvail || ((booking.d < 60) && (length > 2)) && !(booking.d >= 45 && length <= 4 && this.getZoomLevel() >= 4) && !(booking.d >= 40 && length <= 3 && this.getZoomLevel() >= 4)) {
+                text = (i == 0 ? length + ' '+this.occupants : length - i + ' more');
+                if (i>0) textNum = length-i;
+                tooBig = true;
+                var zoomChanged = false;
+                    p.classList.add('more-players');
+// this code used to automatically zoom to a level which showed all players
+//                while ((i+2)*pHeight>spaceAvail) {
+//                    zoomChanged = true;
+//                    this.changeZoomLevel(1, false, true); 
+//                    minZoomLevel += 1;
+//                    spaceAvail = (booking.d * this.getZoomLevel() - 1) - nameMargin;
+//                    if(booking.l)
+//                        spaceAvail -= 10;
+//                }
+//                text = booking[this.occupants][i]['n'];
+            } else {*/
+                text = booking[this.occupants][i]['n'];
+                if (booking.s && booking[this.occupants][i]['r']) {
+                    text += ' ('+booking[this.occupants][i]['r']+')';
+                }
+            //}
+
+            this.generateChecking(booking,text,p,userInBooking,tooBig,i);
+            
+            if (!this.isCollapsed()) {
+                a.appendChild(document.createTextNode(' '+text+'\u00A0\u00A0'));
+                if(booking[this.occupants][i]['m'] && this.isAdmin()){
+                    var medNoteImg = new Image();
+                    medNoteImg.title = booking[this.occupants][i]['m'];
+                    medNoteImg.src = "/r/img/scheduling/med_icon.png";
+                    medNoteImg.classList.add('med-note');
+                    a.appendChild(medNoteImg);
+                }
+                if(this.isAdmin() && booking.hasOwnProperty('tr')){
+                    for(var j=0;j<booking['tr'].length;j++) {
+                        if(booking['tr'][j]['p']==booking[this.occupants][i]['u']){
+                            var feeIndi = document.createElement('div');
+                            feeIndi.appendChild(document.createTextNode('$'));
+                            feeIndi.title = booking['tr'][j]['m']+' - $' +booking['tr'][j]['a'];
+                            feeIndi.classList.add('fee-indication');
+                            if(booking['tr'][j]['s']=='COMPLETED')
+                                feeIndi.classList.add('completed');
+                            else
+                                feeIndi.classList.add('pending');
+                            a.appendChild(feeIndi);
+                        }
+                    }
+                }
+                playerLinkArr.push(a);
+                if(this.selectedTheme == 'default_theme'){
+                    a.setAttribute('style','padding-bottom:2px;margin:0;padding-left:6px;');
+                }else if(this.selectedTheme == 'wide_theme'){
+                    a.setAttribute('style','padding-bottom:2px;margin:0;');
+                }
+                if (tooBig) {
+                    for(var t = 0; t < length; t++) {
+                        if (textNum>0 && t<length-textNum) continue;
+                        linkTitle += linkTitleArr[t]+'\n'; 
+                    }
+                    a.setAttribute('title', linkTitle);
+                }
+                p.appendChild(a);
+            }
+//            if(spaceAvail >= (pHeight - 2)){ 
+                nameDiv.appendChild(p);
+//            }
+
+            if(tooBig) break;
+        }
+        
+        //if (zoomChanged)
+        //    this.refresh();
+        div.appendChild(nameDiv);
+    } else if (this.isAdmin() && booking.z) {
+        a = document.createElement('a');
+        a.setAttribute('style','text-decoration:none');
+        a.appendChild(document.createTextNode(tempClubNumber));
+        a.setAttribute('style','padding:0;margin:0;');
+        a.setAttribute('title', 'Member '+tempClubNumber+' is booking this slot.');
+        p = document.createElement('div');
+        p.appendChild(a);
+        p.classList.add('pname');
+        nameDiv.appendChild(p);
+        div.appendChild(nameDiv);
+    }
+
+    if(booking.sp){
+        var spaceDiv = document.createElement('div');
+        var spacesCountSpan = document.createElement('span');
+        spacesCountSpan.appendChild(document.createTextNode(booking.sp));
+        spacesCountSpan.classList.add('spaces-count');
+        spaceDiv.appendChild(spacesCountSpan);
+        spaceDiv.appendChild(document.createTextNode(' spaces'));
+        spaceDiv.classList.add('space-text');
+        div.appendChild(spaceDiv);
+    }
+
+    if (booking.f) {
+        if(this.isAdmin() || (booking.e && !this.isBookingDisabled())) {
+            var editUrl = '';
+            var editDiv = document.createElement('div');
+            editDiv.appendChild(document.createTextNode('Edit'));
+            editDiv.classList.add('edit');
+            YAHOO.util.Event.addListener(editDiv, 'click', function(e, o){
+                editUrl = o.cv.urls.edit + '/conf/' + o.conf;
+                if(booking.bkId) {
+                    editUrl +='?bk=' + booking.bkId;
+                }
+                window.location = editUrl;
+            }, {conf:booking.f, cv:this});
+            div.appendChild(editDiv);
+        }
+
+        YAHOO.util.Event.addListener(playerLinkArr, 'click', function(e, o){
+            window.location = o.cv.urls.conf + '/id/' + o.conf;
+        }, {conf:booking.f, cv:this})
+    }
+
+    if (booking.b && !this.isAdmin() && booking[this.getUserId()]) {
+        var blockTitle = 'Signed Up';
+        var registerDiv = document.createElement('div');
+        registerDiv.appendChild(document.createTextNode(blockTitle));
+        registerDiv.classList.add('signup_nolink');
+        div.appendChild(registerDiv);
+    } else if (booking.b && !this.isAdmin()) {
+        var blockTitle = booking.b.title ? booking.b.title : 'Join';
+        var registerDiv = document.createElement('div');
+        registerDiv.appendChild(document.createTextNode(blockTitle));
+        registerDiv.classList.add('join');
+        YAHOO.util.Event.addListener(registerDiv, 'click', function(e, o){
+            window.location = o.cv.urls.register + '/conf/' + booking.b;
+        }, {conf:booking.f, cv:this});
+        div.appendChild(registerDiv);
+    } else if(booking.bkAble) {
+        var bookDiv = document.createElement('div');
+        bookDiv.appendChild(document.createTextNode('Book'));
+        bookDiv.classList.add('join');
+        YAHOO.util.Event.addListener(bookDiv, 'click', function(e, o){
+            window.location = o.cv.urls.edit + '/conf/' + booking.bkAble;
+        }, {conf:booking.f, cv:this});
+        div.appendChild(bookDiv);        
+    } else if (booking.g) {
+        var blockTitle = 'Full';
+        var registerDiv = document.createElement('div');
+        registerDiv.appendChild(document.createTextNode(blockTitle));
+        registerDiv.classList.add('signup_nolink');
+        div.appendChild(registerDiv);
+    } else if (booking.y) {
+        var blockTitle = 'Closed';
+        var registerDiv = document.createElement('div');
+        registerDiv.appendChild(document.createTextNode(blockTitle));
+        registerDiv.classList.add('signup_nolink');
+        div.appendChild(registerDiv);
+    }
+
+    return div;
+};
+
+/** 
+ * Create and show CNE details dialog
+ */
+
+baseViewer.prototype.showCNEDialog = function(event) {
+    
+    var div = document.createElement('div');
+    div.setAttribute('id', 'cneDialog');
+    div.style.backgroundColor = '#fff';
+    div.innerHTML = '<div class="hd" id="cneDialogHeader" style="background-color:#' + event.c + ';"></div><div class="bd" id=cneDialogFooter>Body</div>';   
+    
+   cneDialog = new YAHOO.widget.SimpleDialog(div, {
+                close: true,
+                width: "430px",
+                fixedcenter:true,
+                modal:true,
+                visible:false,
+                draggable:false,
+                effect:{effect:YAHOO.widget.ContainerEffect.FADE, duration: 0.4}});
+    var body = '';
+    
+    body+= '<br>';
+    body+= event.date;
+    body+= '<br><br>';
+    
+    body+= event.time + ' - ' + event.endTime;
+    body+= '<br><br>';
+    
+    //body+= event.club_id + '<br><br>';
+    if (event.instructors.length > 0) {
+        for(var i = 0; i < event.instructors.length; i++) {
+            body+= event.instructors[i] + '<br>';
+        }
+        body+='<br>';
+    }
+    
+    if (event.fees.length > 0) {
+        fee = event.fees[0];
+        body+= '$ ' + fee.amount;
+        body+= '<br><br>';
+    }
+
+    if(event.ageLimit !='') {
+        body+= event.ageLimit;
+        body+= '<br><br>';
+    }
+
+    var buttonDiv = '<div class="cne-details" style="margin:15px;display:inline-block;">';
+    buttonDiv+= '<a style="font-weight:normal;text-transform: none;" href="'+event.link+'" class="button green">Register</a></div>';
+
+    var detailsDiv = '<div class="cne-details" style="margin:15px;display:inline-block;">';
+    detailsDiv+= '<a style="font-weight:normal;text-transform: none;" href="'+event.link+'" class="button blue">Details</a></div>';
+
+    body+= detailsDiv;
+    body+= buttonDiv;
+    
+    cneDialog.setBody(body);
+    cneDialog.setHeader(event.title);
+    cneDialog.render(document.body);
+    cneDialog.show();
+};
+
+/**
+ * Generate a td element for the given court information:
+ *
+ * @param {Object} court    Object containing the court data used, generally provided
+ *                          from the data refresh action. See member IndexController
+ *                          for more details.
+ * @param {int} colspan     OPTIONAL the number of columns the td should span. Defaults
+ *                          to 1.
+ * @return {HTMLTableCellElement}
+ */
+baseViewer.prototype.generateLocationTd = function(loc, colspan, numcols, timeCol, weekView) {
+    if(!colspan) {
+        colspan = 1;
+    }
+
+    var td = document.createElement("td");
+    td.colSpan = colspan;
+    if (timeCol)
+        td.classList.add('timecolslot');
+    else
+        td.classList.add('timeslot');
+
+    var slots = this.generateSlots(loc.t, loc.b, timeCol, loc.un, loc.n,loc.tsn);
+
+    // If there are no times or bookings...
+    if(slots.length == 0) {
+        td.appendChild(this.generateFillerDiv(this.getOpen(), this.getClose(),numcols));
+        return td;
+    }
+    
+    // Filler at start of day
+    if(this.isWideView()){
+        if(slots.length > 0 ){
+            var slotExist = false;
+            for( var s in slots){
+                if(slots[s].data.t == this.smallestWideviewSlotTime){
+                    slotExist = true;
+                }
+            }
+            if( slotExist == false){
+                var duration = slots[0].data.t - this.smallestWideviewSlotTime;
+                var data = {t:this.smallestWideviewSlotTime, d:duration};
+                
+                var type = slots[0].type == "timecol" ? "timecol" : "unavailable";
+                var newSlot = {type:type,data:data};
+                slots.reverse();
+                slots.push(newSlot);
+                slots.reverse();
+            }
+        }
+    }
+
+    if(slots.length > 0 && slots[0].data.t > this.getOpen()) {
+        td.appendChild(this.generateFillerDiv(this.getOpen(), slots[0].data.t,numcols));
+    }
+    
+    var datestr;
+    if (weekView)
+        datestr = loc.date;
+    else
+        datestr = this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate();
+    var odd = false, div;
+    // Go through the time slots
+    for(var j = 0; j < slots.length; j++) {
+
+        switch(slots[j].type) {
+            case 'timecol':
+                odd = !odd;
+                div = this.generateTimeDiv(loc.i, datestr, slots[j].data, odd, true);
+                if (this.isCollapsed()) {
+                    var curHeight = YAHOO.util.Dom.getStyle(div, "height").replace(/[^\.0-9]/g,'');
+                    div.style.height = ((Math.floor(10 * curHeight / 2)) / 10) + 'px';
+                }
+                break;
+            case 'timeslot':
+                odd = !odd;
+                if(this.isPlaceview())
+                    div = this.generateTimeDiv(slots[j].data.sid, datestr, slots[j].data, odd, false);
+                else
+                    div = this.generateTimeDiv(loc.i, datestr, slots[j].data, odd, false);
+                if(this.showToolTip)
+                    this.setToolTip(this.generateToolTip(slots[j].data, false, div, td));
+                if (this.isCollapsed()) {
+                    var curHeight = YAHOO.util.Dom.getStyle(div, "height").replace(/[^\.0-9]/g,'');
+                    div.style.height = ((Math.floor(10 * curHeight / 2)) / 10) + 'px';
+
+                }
+                break;
+            case 'booking':
+                odd = !odd;
+                div = this.generateBookingDiv(slots[j].data, numcols);
+                if(this.showToolTip && slots[j].data.i != 0)
+                    this.setToolTip(this.generateToolTip(slots[j].data, true, div, td));
+                if (this.isCollapsed()) {
+                    var curHeight = YAHOO.util.Dom.getStyle(div, "height").replace(/[^\.0-9]/g,'');
+                    div.style.height = ((Math.floor(10 * curHeight / 2)) / 10) + 'px';
+                }
+                break;
+            case 'unavailable' :
+                odd !=odd;
+                div = this.generateUnavailableDiv(slots[j].data);
+                break;
+        }
+        if (!timeCol && !this.isWideView()){
+            if(this.selectedTheme == 'default_theme'){
+                if(numcols > 2){
+                    div.style.width = Math.floor((this.courtViewerWidth - this.timeWidth) / numcols) + 'px';
+                }else{
+                    div.style.width = Math.ceil((this.courtViewerWidth-this.timeWidth)/numcols)+'px';
+                }
+            }else if(this.selectedTheme == 'wide_theme'){
+                if(numcols > 2){
+                    div.style.width = (Math.floor((this.courtViewerWidth-this.timeWidth)/numcols)-1)+'px';
+                }else{
+                    div.style.width = (Math.ceil((this.courtViewerWidth-this.timeWidth)/numcols)-1)+'px';
+                } 
+            }
+        }
+        td.appendChild(div);
+        // Draw filler between timeslots if necessary
+        if(slots[j+1] && slots[j].data.t+ slots[j].data.d< slots[j+1].data.t) {
+            td.appendChild(this.generateFillerDiv(slots[j].data.t+ slots[j].data.d, slots[j+1].data.t,numcols));
+        }
+    }
+   
+    // Filler at end of day
+    if(slots[slots.length - 1].data.t+ slots[slots.length - 1].data.d< this.getClose()) {
+        td.appendChild(this.generateFillerDiv(slots[slots.length - 1].data.t+ slots[slots.length - 1].data.d, this.getClose(),numcols));
+    }
+
+    return td;
+};
+
+baseViewer.prototype.generateArrow = function(which) {
+    var cv = this;
+
+    var Arrow = document.createElement('div');
+    Arrow.setAttribute('id', 'dateSelector-'+which);
+    Arrow.classList.add('cv_date_arrow');
+
+    var a = document.createElement('a');
+    a.href = 'javascript:void(0);';
+    var span = document.createElement('span');
+    span.appendChild(document.createTextNode('&'+(which=='left'?'l':'r')+'t;'));
+    YAHOO.util.Event.addListener(a, "click", function(e, cv){
+        cv.advanceDate(which=='left'?(-7):7);
+    }, this);
+    a.appendChild(span);
+    Arrow.appendChild(a);
+
+    return Arrow;
+};
+
+/**
+ * Generate the leftmost column of the booking sheet showing all the hours for the
+ * day, based on the court viewer's open and close times.
+ *
+ * @return {HTMLTableCellElement}
+ */
+baseViewer.prototype.generateHoursTd = function() {
+    var td = document.createElement("td");
+    td.setAttribute('id','cv-timeColumn');
+    var odd = false, div, height, saveHeight;
+    var timePixelOffset = 14;
+    var openTime = this.getOpen();
+    for(var i = openTime; i < this.getClose(); i += 60) {
+        div = document.createElement("div");
+        if (i!=openTime)
+            div.appendChild(document.createTextNode(this.minToTimeStr(i)+' -'));
+        div.style.textAlign = 'right';
+        div.classList.add('hour');
+        if (i==openTime+60) {
+            div.style.marginTop = '-' + timePixelOffset + 'px';
+        }
+        height = 30 * this.getZoomLevel() - 4 + parseInt(this.getTextSize());
+        if (this.isCollapsed())
+            height = (Math.floor(10*height/2))/10;
+        saveHeight = height+timePixelOffset;
+        height += "px";
+        div.style.height = height;
+        if (this.isCollapsed())
+            div.style.paddingTop = '2.5px';
+        if(odd) div.classList.add('odd');
+        odd = !odd;
+        td.appendChild(div);
+    }
+    div.style.height = saveHeight + 'px';
+    return td;
+};
+
+/**
+ * Generate the entire court viewer div based on properties of this object
+ * set by the refresh method.
+ *
+ * @return HTMLDivElement
+ */
+baseViewer.prototype.generateScheduleView = function() {
+    var div = document.createElement("div");
+    div.classList.add('courtViewer');
+    var table = document.createElement("table");
+    table.classList.add('courtViewer');
+    var tbody = document.createElement("tbody");
+    var thead = document.createElement("thead");
+    thead.id='courtvieweHeader';
+    var locs = this.getLocations();
+    var days = this.getDays();
+    
+    if((days == null || days.length < 1) && (locs == null || locs.length < 1)) {
+        return div;
+    }
+
+    // Create location title row
+    thead.appendChild(this.generateLocationNameTr(locs));
+    
+    // Create row containing hours + schedule
+    var tr = document.createElement("tr");
+
+    // First, let's start with the time labels on the left.
+//    if(this.isGenerateHoursTd)tr.appendChild(this.generateHoursTd());
+
+    // Now draw in the location slots
+    var timeCol = this.isGenerateHoursTd;
+    if (this.isWeekview()) {
+        if (timeCol)
+            tr.appendChild(this.generateLocationTd(days[0], 1, days[0].length, true, true));
+        for(var i in days) {
+            tr.appendChild(this.generateLocationTd(days[i], 1, days.length, false, true));
+        }
+    } else {
+        this.lockIt = false;
+        if (timeCol)
+            tr.appendChild(this.generateLocationTd(locs[0], 1, locs[0].length, true));
+        for(var i in locs) { 
+            tr.appendChild(this.generateLocationTd(locs[i], 1, locs.length, false));
+            this.lockIt = true;
+        }
+    }
+
+    tbody.appendChild(tr);
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    div.appendChild(table);
+    return div;
+};
+
+/**
+ * Generate a td to represent the given reservation type data. Includes label and
+ * shaded div for booking sheet legend color.
+ *
+ * @param {Object} rtype Object containing reservation type information.
+ * @return {HTMLTableCellElement}
+ */
+baseViewer.prototype.generateRtypeTd = function(rtype) {
+    var bicolor = false;
+    if (typeof rtype['c']=="object") {
+        var color=[];
+        color.push(rtype['c'][0]);
+        color.push(rtype['c'][1]);
+        bicolor=true;
+    } else if (typeof rtype['c']=="string")
+        var color=rtype['c']?rtype['c']:'FFF';
+    var name=rtype['n']?rtype['n']:'';
+    var outerTd = document.createElement('td');
+
+    var table = document.createElement('table');
+    var tbody = document.createElement('tbody');
+    var tr = document.createElement('tr');
+
+    if (bicolor) {
+        table.setAttribute('cellspacing', '0');
+        var td1 = document.createElement('td');
+        var td2 = document.createElement('td');
+        td1.style.paddingRight = '0';
+        td2.style.paddingLeft = '0';
+        var colorDiv1 = document.createElement('div');
+        var colorDiv2 = document.createElement('div');
+        colorDiv1.classList.add('rtypelhalf');
+        colorDiv2.classList.add('rtyperhalf');
+        colorDiv1.style.backgroundColor = '#' + color[0];
+        colorDiv2.style.backgroundColor = '#' + color[1];
+        td1.appendChild(colorDiv1);
+        td2.appendChild(colorDiv2);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+    } else {
+        var td = document.createElement('td');
+        var colorDiv = document.createElement('div');
+        colorDiv.classList.add('rtype');
+        colorDiv.style.backgroundColor = '#' + color;
+        td.appendChild(colorDiv);
+        tr.appendChild(td);
+    }
+
+    td = document.createElement('td');
+    td.appendChild(document.createTextNode(name));
+    tr.appendChild(td);
+
+    tbody.appendChild(tr);
+    table.appendChild(tbody);
+    outerTd.appendChild(table);
+    return outerTd;
+};
+
+/**
+ * Generate the reservation type footer containing a legend for the reservation
+ * type colors.
+ *
+ * @return {HTMLDivElement}
+ */
+baseViewer.prototype.generateReservationTypeFooter = function() {
+    var cols = 3; // Number of reservation types per row
+
+    var div = document.createElement('div');
+    div.classList.add('legend');
+
+    var table = document.createElement('table');
+    table.classList.add('legend');
+
+    var tbody = document.createElement('tbody');
+    var rtypes = this.rtypesArr;
+    var tr, td, i, j, rtype;
+
+    // Create first row (includes 'Legend' text)
+    tr = document.createElement('tr');
+    td = document.createElement('td');
+    var numRTypes=this.numRTypes+2;
+    var rows = Math.ceil(numRTypes/cols);
+    td.rowSpan = rows;
+    td.appendChild(document.createTextNode('Legend'));
+    tr.appendChild(td);
+    tr.appendChild(this.generateRtypeTd({'c':{0:'eeeaca',1:'e6e2bf'},'n':'Available'}));
+    tr.appendChild(this.generateRtypeTd({'c':'d5d5d5','n':'Unavailable'}));
+    if (rtypes[0])
+        tr.appendChild(this.generateRtypeTd(rtypes[0]));
+    tbody.appendChild(tr);
+
+    // Create all following rows
+    for(i = 1; i < rows; i++) {
+        tr = document.createElement('tr');
+
+        for(j = 0; j < Math.min(cols, numRTypes-(i*cols)); j++) {
+            rtype=rtypes[i*cols+j-2];
+            tr.appendChild(this.generateRtypeTd(rtype));
+        }
+        // Filler TDs
+        for(j; j < cols; j++) {
+            tr.appendChild(document.createElement('td'));
+        }
+
+        tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    div.appendChild(table);
+    return div;
+};
+
+baseViewer.prototype.generateCollapser = function(noHourCol) {
+    var collapseLink = document.createElement('a');
+    var collapseUrl = this.isCollapsed() ? '' : '?collapsed=1';
+    collapseLink.href = this.urls.toggle + '/sport/' + this.sport + collapseUrl + window.location.hash;
+    var colImg = new Image();
+    colImg.src = "/r/img/core/"+(this.isCollapsed()?'expand':'collapse')+"_grid.png";
+    colImg.style.border = '0';
+    collapseLink.appendChild(colImg);
+    collapseLink.classList.add('collapse');
+
+    return collapseLink;
+};
+
+baseViewer.prototype.generateWideview = function(noHourCol) {
+    var wideviewLink = document.createElement('a');
+    wideviewLink.href = this.urls.wideview + '#date=' + this.getDate().getFullYear() + "-" + (this.getDate().getMonth() + 1) + "-" + this.getDate().getDate();
+    var colImg = new Image();
+    colImg.src = "/r/img/core/expand_grid.png";
+    colImg.style.border = '0';
+    wideviewLink.appendChild(colImg);
+    wideviewLink.classList.add('collapse');
+
+    return wideviewLink;
+};
+
+/**
+ * Generate the zoom panel
+ * @return {HTMLDivElement}
+ *
+ **/
+baseViewer.prototype.generateZoomPanel = function(id){
+    var cv = this;
+    var zoomDiv = document.createElement('div');
+    zoomDiv.setAttribute('id','zoomBox');
+    var aRefresh = document.createElement('a');
+    var aIn = document.createElement('a');
+    var aOut = document.createElement('a');
+
+    if(this.isAdmin()) {
+        aRefresh.className = 'icon_refresh';
+        zoomDiv.appendChild(aRefresh);
+        if (this.isAdmin() && window.location.toString().search(/ref=1/) != -1)
+            aRefresh.href = window.location;
+        else if (this.isAdmin()) {
+            this.setGridRefresh(true);
+            aRefresh.href = window.location + (  window.location.toString().search(/\?/) != -1 ? '&' : '?' ) + 'ref=1';
+        }
+    }
+
+//    var shrinkDisabled = (this.getZoomLevel() <= 1);
+    var shrinkDisabled = (this.getZoomLevel() <= this.getMinZoomLevel());
+    aIn.onclick = function(){cv.changeZoomLevel(-1)};
+    //aIn.appendChild(document.createTextNode('Zoom In'));
+
+    aIn.className = (shrinkDisabled)? 'icon_minus disabled':'icon_minus enabled';
+
+    var growDisabled = (this.getZoomLevel() >= 5);
+    aOut.onclick = function(){cv.changeZoomLevel(1)};
+    //aOut.appendChild(document.createTextNode('Zoom Out'));
+    aOut.className = (growDisabled)? 'icon_plus disabled':'icon_plus enabled';
+
+    /*zoomDiv.appendChild(aIn);
+    zoomDiv.appendChild(aOut);*/
+
+    /*if (this.isAdmin()) {
+        var collapser = cv.generateCollapser();
+        zoomDiv.appendChild(collapser);
+    }*/
+    return zoomDiv;
+};
+
+/*
+baseViewer.prototype.setSlotElementsFontSize = function(){    
+    var fsTimeSlot  = parseInt(YAHOO.util.Dom.getStyle(YAHOO.util.Dom.getElementsByClassName('timeslot', 'td'), 'font-size').toString().substr(0,2),10);
+    var fsTitle     = parseInt(YAHOO.util.Dom.getStyle(YAHOO.util.Dom.getElementsByClassName('title', 'div'), 'font-size').toString().substr(0,1),10);
+    var fsPname     = parseInt(YAHOO.util.Dom.getStyle(YAHOO.util.Dom.getElementsByClassName('pname', 'div'), 'font-size').toString().substr(0,2),10);
+
+    fsTimeSlot  = (fsTimeSlot) ? fsTimeSlot : 12;
+    fsTitle     = (fsTitle) ? fsTitle : 9;
+    fsPname     = (fsPname) ? fsPname : 12;
+
+    YAHOO.util.Dom.setStyle(YAHOO.util.Dom.getElementsByClassName('timeslot','td','viewer'), 'font-size',(fsTimeSlot + this.getTextZoomLevel())+'px');
+    YAHOO.util.Dom.setStyle(YAHOO.util.Dom.getElementsByClassName('title','div','viewer'), 'font-size',(fsTitle + this.getTextZoomLevel())+'px');
+    YAHOO.util.Dom.setStyle(YAHOO.util.Dom.getElementsByClassName('pname','div','viewer'),'font-size',(fsPname + this.getTextZoomLevel())+'px');
+}
+
+baseViewer.prototype.generateZoomFloatingPanel = function(){
+    var zoomFloatingDiv = document.createElement('div');
+    zoomFloatingDiv.setAttribute('id','zoomBoxFloating');
+    zoomFloatingDiv.appendChild(this.generateZoomPanel());         
+    return zoomFloatingDiv;    
+}
+
+baseViewer.prototype.bindFloatingEffect = function(floatEleId, fixedEleId){
+    var floatEle = document.getElementById(floatEleId);
+    var fixedEle = document.getElementById(fixedEleId);
+        
+    var scrollTop = 0;
+    if(typeof pageYOffset!= 'undefined'){
+        scrollTop =  pageYOffset;
+    }else{
+        var B= document.body; 
+        var D= document.documentElement; 
+        D= (D.clientHeight)? D: B;
+        scrollTop = D.scrollTop;
+    }
+
+    if(scrollTop >= (YAHOO.util.Dom.getY(fixedEleId) + fixedEle.offsetHeight) ){
+        floatEle.style.display = 'block';
+    }else{
+        floatEle.style.display = 'none';
+    }       
+*/
+baseViewer.prototype.fixedHeader = function(selectedTheme,module){
+    var scrollTop = 0;
+    var bodyElement = document.body;
+    var bodyClass = bodyElement.className;
+    if (bodyClass.includes('wide_theme')) {
+        selectedTheme = 'wide_theme';
+    }else if(bodyClass.includes('default_theme')){
+        selectedTheme = 'default_theme';
+    }
+    if(selectedTheme == 'default_theme'){
+        var fixedStartY = 203;
+    }else if(selectedTheme == 'wide_theme'){
+        var fixedStartY = 178;
+    }
+    if(typeof pageYOffset!= 'undefined'){
+        scrollTop =  pageYOffset;
+    }else{
+        var B= document.body; 
+        var D= document.documentElement; 
+        D= (D.clientHeight)? D: B;
+        scrollTop = D.scrollTop;
+    }
+
+    if (scrollTop >= fixedStartY) {
+        var appendHeight = scrollTop;
+        if (document.getElementById('newsbox').innerHTML == '') {
+           appendHeight += 64 ; 
+        }
+        if ((document.getElementById('newsbox').innerHTML).trim() != '') {
+           appendHeight -= document.getElementById('newsbox').offsetHeight;
+           appendHeight += 54 ;
+        }
+         if ((document.getElementById('msgbox').innerHTML).trim()!='') {
+           appendHeight -= 48 ; 
+        }
+        if (document.getElementById('t1navsub')) {
+            if(selectedTheme == 'default_theme'){
+                appendHeight -= 52 ; 
+            }else if(selectedTheme == 'wide_theme'){
+                appendHeight -= 25 ; 
+            }
+        }
+        if(YAHOO.util.Dom.getElementsByClassName('quickalert', 'div').length > 0) {
+            appendHeight -= 50 ;
+        }
+        if(selectedTheme == 'default_theme'){
+            document.getElementById('gridTopContent').setAttribute('style', 'position:sticky;top: 0;z-index:99;padding-top: 5px;');
+            if(document.getElementById('t1navsub') || module == 'therapy'){
+                document.getElementById('dateSelector').setAttribute('style', 'position:sticky;top: 47px;z-index:98;padding-bottom: 16px;margin: 0 0 0 33px;');
+            }else{
+                document.getElementById('dateSelector').setAttribute('style', 'position:sticky;top: 47px;z-index:98;padding-bottom: 16px;margin-bottom: 0;');
+            }
+            if (YAHOO.util.Dom.getElementsByClassName('groupHeader', 'div').length > 0) {
+                theadTop += 27;
+                document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 135px;z-index:98;';
+                var elements = document.getElementsByClassName('groupHeader');
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.cssText = 'position:sticky;top: 95px;z-index:98;padding: 10px 0;';
+                }
+            } else {
+                document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 95px;z-index:98;width:1174px;';
+                theadTop += 10;
+            }
+        }else if(selectedTheme == 'wide_theme'){
+            var dateSelectorWidth = document.getElementById('dateSelector').offsetWidth;
+            var calculatedLeft = document.getElementById('dateSelector').getBoundingClientRect().left;
+            if (document.getElementById('t1navsub') || module == 'therapy') {
+                document.getElementById('gridTopContent').setAttribute('style', 'position:sticky;top: -11px;z-index:99;left:'+calculatedLeft+'px;width: '+dateSelectorWidth+'px;');
+                document.getElementById('dateSelector').setAttribute('style', 'position:sticky;top: 73px;z-index:98;padding-bottom: 16px;margin-bottom: 0;margin-left: -1px;');
+
+                if (YAHOO.util.Dom.getElementsByClassName('groupHeader', 'div').length > 0) {
+                    theadTop += 27;
+                    document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 164px;z-index:98;';
+                    var elements = document.getElementsByClassName('groupHeader');
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].style.cssText = 'position:sticky;top: 128px;z-index:98;padding: 10px 0;';
+                    }
+                } else {
+                    document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 118px;z-index:98;';
+                    theadTop += 10;
+                }
+            }else{
+                document.getElementById('gridTopContent').setAttribute('style', 'position:sticky;top: 0;z-index:99;left:'+calculatedLeft+'px;width: '+dateSelectorWidth+'px;');
+                document.getElementById('dateSelector').setAttribute('style', 'position:sticky;top: 84px;z-index:98;padding-bottom: 16px;margin-bottom: 0;margin-left: -1px;');
+
+                if (YAHOO.util.Dom.getElementsByClassName('groupHeader', 'div').length > 0) {
+                    theadTop += 27;
+                    document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 168px;z-index:98;';
+                    var elements = document.getElementsByClassName('groupHeader');
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].style.cssText = 'position:sticky;top: 128px;z-index:98;padding: 10px 0;';
+                    }
+                } else {
+                    document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 94px;z-index:98;';
+                    theadTop += 10;
+                }
+            }
+        }
+        
+        if (document.getElementById('weekview_title')) {
+            leftArrow = document.getElementById('dateSelector-left');
+            rightArrow = document.getElementById('dateSelector-right');
+            leftArrow.setAttribute('style', 'position:relative;top:1px;margin-left:4px;float:left;z-index:1000;');
+            rightArrow.setAttribute('style', 'position:relative;top:1px;margin-right:4px;float:right;z-index:1000;');
+            document.getElementById('weekview_title').setAttribute('style', 'position:sticky;top: 67px;z-index:1000;padding-bottom: 6px;width: 1174px;text-align:center;font-size:16px;background-color: #fff;margin: 0 auto;');
+            document.querySelector('table.courtViewer thead').style.cssText = 'position:sticky;top: 74px;z-index:98;width:1174px;';
+            var theadTop = 52;
+        } else
+            var theadTop = 97;
+//        document.getElementById('zoomBox').setAttribute('style','position:fixed;top: '+theadTop+'px;right: 65px;');
+    }else{
+        this.disableFixedHeader();
+    }
+};
+
+baseViewer.prototype.disableFixedHeader = function() {
+        document.getElementById('gridTopContent').removeAttribute('style');
+        document.getElementById('booking-actions').removeAttribute('style');
+        if (document.getElementById('weekview_title')) {
+            document.getElementById('weekview_title').setAttribute('style', 'text-align:center;font-size:16px;');
+            leftArrow = document.getElementById('dateSelector-left');
+            rightArrow = document.getElementById('dateSelector-right');
+            if (showTimeCol)
+                leftArrow.setAttribute('style', 'margin-left:4px;left: 65px; top: 42px;');
+            else
+                leftArrow.setAttribute('style', 'margin-left:4px;top: 42px;');
+            rightArrow.setAttribute('style', 'margin-right:4px;top: 42px;');
+        }
+        if (document.getElementById('dateSelector'))
+            document.getElementById('dateSelector').removeAttribute('style');
+        if (YAHOO.util.Selector.query('table.courtViewer thead')[0])
+            YAHOO.util.Selector.query('table.courtViewer thead')[0].removeAttribute('style');
+        if(YAHOO.util.Dom.getElementsByClassName('groupHeader','div').length > 0)
+            YAHOO.util.Dom.getElementsByClassName('groupHeader','div')[0].removeAttribute('style');
+        if (document.getElementById('zoomBox'))
+            document.getElementById('zoomBox').removeAttribute('style');
+    }
+
+window.onscroll = function(){
+    b = new baseViewer();
+    if(this.tv){
+        b.fixedHeader(this.tv.selectedTheme,'therapy');
+    }
+    if(this.cv){
+        b.fixedHeader(this.cv.selectedTheme,'sched');
+    }
+};
+
+/**
+ * Refresh all of the data used by the court viewer, and redraw the court viewer
+ * in the target element.
+ */
+baseViewer.prototype.refresh = function(url, callback) {
+    var curReq = this.getCurrentRequest();
+
+    if(curReq) {
+        YAHOO.util.Connect.abort(curReq);
+        finishStealthLoading();
+    }
+
+    var req = YAHOO.util.Connect.asyncRequest('GET', url, callback);
+    this.setCurrentRequest(req);
+};
+
+/**
+ * Using the data acquired through the refresh method, redraw all the elements
+ * of the court viewer.
+ */
+//adding below 2 functions for fixing IE issue
+function displaytime(timeEle, updateSecs, showDate, showTime, hideSecs) {
+    var montharray=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+    serverdate.setSeconds(serverdate.getSeconds()+updateSecs);
+    if (showDate) {
+        var datestring=montharray[serverdate.getMonth()]+" "+padlength(serverdate.getDate())+", "+serverdate.getFullYear();
+        if (showTime)
+            datestring += " ";
+    } else
+        var datestring="";
+    if (showTime) {
+        var hours = serverdate.getHours();
+        var ampm = (hours >= 12) ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        var timestring=hours+":"+padlength(serverdate.getMinutes());
+        if (!hideSecs)
+            timestring += ":"+padlength(serverdate.getSeconds());
+        timestring += " "+ampm;
+    } else
+        timestring = "";
+
+    timeEle.textContent=datestring+timestring;
+}
+function padlength(what){
+    var output=(what.toString().length==1)? "0"+what : what;
+    return output;
+}
+var servTimeTimer;
+baseViewer.prototype.render = function() {
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames= ["Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    this.target.innerHTML = "";
+    if(this.isWideView()) {
+        var html = document.getElementsByTagName('html')[0];
+        html.classList.add('wideview');
+    }
+    containerDiv = document.getElementById(this.containerDiv);
+    containerDiv.innerHTML = "";
+    containerDiv.appendChild(this.generateTopHeader());
+    if (this.getShowTimeSeconds())
+        displaytime(document.getElementById("servertime"), 1, false, true, false);
+    else
+        displaytime(document.getElementById("servertime"), 1, false, true, true);
+
+    if (!this.isWeekview())
+        this.target.appendChild(this.generateDateHeader());
+
+    this.target.appendChild(this.generateZoomPanel(2));
+    if(this.isWideView()) {
+        var allLocations = this.getLocations();
+        var div = document.createElement("div");
+        var topHeader = document.createElement("div");
+        topHeader.classList.add('wideViewSportHeader');
+        topHeader.setAttribute('id','wideViewSportHeader');
+        
+        var progressBar = document.createElement("div");
+        progressBar.id='progressBar';
+        progressBar.classList.add('progress-bar');
+        progressBar.classList.add('hide');
+        
+        var collapseLink = document.createElement('a');
+        collapseLink.setAttribute('style','position:absolute;right:20px;top: 14px;');
+        collapseLink.href = this.urls.day+'/sport/'+this.sport+'#date='+YAHOO.util.Date.format(this.getDate(), {format:'%Y-%m-%d'})+'&group='+this.group;
+        
+        var clubLink = document.createElement('a');
+        clubLink.setAttribute('style','position: absolute;left: 0;bottom: 0px;height: 91px;display: flex;justify-content: center;align-items: center;top: 30px;');
+        
+        var collapseImg = new Image();
+        collapseImg.src = "/r/img/core/new_close.png";
+        collapseImg.id="collapseFullScreen";
+        var playerInfoLink = document.createElement('a');
+        playerInfoLink.setAttribute('style','position:absolute;right:0;');
+        
+        var clubImg = new Image();
+        clubImg.src = "https://gametime-images.s3.amazonaws.com/img/club/"+clubFolder+"/club_logo_wideview.jpg";
+        clubImg.id="clubImg";
+        
+//        var collpseGridImg = new Image();
+//        collpseGridImg.src = "/r/img/core/group_icon.png";  
+//        collpseGridImg.id= "collapseGridButton";
+        var autoChangeGridLink = document.createElement('a');
+        autoChangeGridLink.setAttribute('style','position:absolute;right:10px;');
+        
+        var autoChangeDiv = document.createElement("div");
+        autoChangeDiv.src = "/r/img/core/down-scroll.png";  
+        autoChangeDiv.classList.add('kioskActionButton');
+        autoChangeDiv.classList.add('start');
+        
+        YAHOO.util.Event.addListener(autoChangeDiv,"click",function(){
+            cv.activeKioskScreenView();
+        });
+              
+        
+        if(this.isCollapsed()) {
+//            YAHOO.util.Event.addListener(collpseGridImg,"click",function(){
+//                  cv.setCollapsed(false);
+//                  cv.render();
+//            });
+        } else {
+//            YAHOO.util.Event.addListener(collpseGridImg,"click",function(){
+//                  cv.setCollapsed(true);
+//                  cv.render();
+//            });
+        }
+        //playerInfoLink.appendChild(collpseGridImg);
+        collapseLink.appendChild(collapseImg);
+        clubLink.appendChild(clubImg);
+        autoChangeGridLink.appendChild(autoChangeDiv);
+        topHeader.appendChild(autoChangeGridLink);
+        topHeader.appendChild(collapseLink);
+        topHeader.appendChild(clubLink);
+        var span = document.createElement("span");
+        span.id = "sportName";
+        topHeader.appendChild(span);
+        var gtspan = document.createElement("span");
+        gtspan.id = "gtspan";
+        gtspan.innerHTML = "GAMETIME";
+        topHeader.appendChild(gtspan);
+        var mybr = document.createElement('br');
+        topHeader.appendChild(mybr);
+        var span1 = document.createElement("span");
+        		span1.id = "curr_date";
+        var date1 = new Date();
+        span1.innerHTML = "&nbsp;&nbsp;"+date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
+        var spanTime = document.createElement("span");
+        spanTime.id = "spanTime";
+	    topHeader.appendChild(spanTime);        topHeader.appendChild(span1);
+        topHeader.appendChild(playerInfoLink);
+        div.appendChild(progressBar);
+        div.appendChild(topHeader);
+        
+        var bottomAdv = document.createElement("div");
+        var gtAdvSpan = document.createElement("span");
+        gtAdvSpan.classList.add('bottomAdvContent');
+        gtAdvSpan.id= "gtAdvSpan";
+        var dat = new Date();
+        var year = dat.getFullYear();
+        gtAdvSpan.innerHTML = "&copy; "+year+" GameTime";
+        
+        var clubname = document.createElement("span");
+        clubname.classList.add('bottomAdvContent');
+        clubname.id= "clubNameSpan";
+        clubname.innerHTML = this.getClubName();
+        
+        bottomAdv.appendChild(clubname);
+        bottomAdv.appendChild(gtAdvSpan);
+        
+        bottomAdv.classList.add('wideViewAdv');
+        div.appendChild(bottomAdv);
+        
+        div.classList.add('courtViewerWide');
+        var data = new Array();
+        var count = 0;
+        var page = 1;
+        var courts = 16;
+        var currentSport = allLocations[0].sid;
+        var currentGroup = allLocations[0].g;
+        if(this.isCollapsed()) {
+            courts = 25;
+        } 
+        
+        var totalNoOfTables = 1;
+        var wideViewOptions = this.getWideViewOptions();
+        if(wideViewOptions.screenBehaviour === "FIXED") {
+            data[1] = new Array();
+            for(var i in allLocations) {
+                if(count == wideViewOptions.noOfCourtsToDisplay) {
+                    count = 0;
+                    page++;
+                } 
+                if(page === this.getWideViewPage()){
+                    data[1][count] = allLocations[i];
+                }
+                count++;
+            }
+        } else {
+            data[page] = new Array();
+            for(var i in allLocations) {
+                if(count==courts || currentSport!=allLocations[i].sid || currentGroup!=allLocations[i].g ) {
+                    count = 0;
+                    page++;
+                    data[page] = new Array();
+                    data[page][count] = allLocations[i];
+                    if(currentSport!=allLocations[i].sid || currentGroup!=allLocations[i].g){
+                        count = 1;
+                    }
+                    currentSport=allLocations[i].sid;
+                    currentGroup=allLocations[i].g;
+                } else
+                    data[page][count] = allLocations[i];
+                count++;
+            }
+            totalNoOfTables = page;
+        }
+        
+        for(var d in data) {
+            div.appendChild(this.generateWideScheduleView(data[d],d));
+        }
+        YAHOO.util.Event.addListener(div,"scroll",function(ele){ 
+            var changeInfo = cv.getOffsetsOfTable();
+            var flag=0;
+            for(var i in changeInfo) {
+                if(div.scrollTop <= changeInfo[i][1] && flag==0) {
+                    $("sportName").innerHTML = cv.getSports()[changeInfo[i][0]];
+					var date1 = new Date();
+                    $("curr_date").innerHTML = "&nbsp;&nbsp;"+(dayNames[date1.getDay()- 1])+', '+(monthNames[date1.getMonth()])+' '+ date1.getDate()+ ', '+date1.getFullYear();
+                    $("spanTime").innerHTML = "&nbsp;&nbsp;"+date1.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});                    flag=1;
+                }
+            }
+            if(window.innerHeight + div.scrollTop >= div.scrollHeight) {
+                $("sportName").innerHTML = cv.getSports()[changeInfo[changeInfo.length-1][0]];
+				var date1 = new Date();
+                $("curr_date").innerHTML = "&nbsp;&nbsp;"+(dayNames[date1.getDay()- 1])+', '+(monthNames[date1.getMonth()])+' '+ date1.getDate()+ ', '+date1.getFullYear();
+                $("spanTime").innerHTML = "&nbsp;&nbsp;"+date1.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});            }
+        });
+        this.target.appendChild(div);
+        this.setOffsetsOfTable(getOffsetOfTables(totalNoOfTables));
+        var changeInfo = cv.getOffsetsOfTable();
+        var flag=0;
+        for(var i in changeInfo) {
+            if(div.scrollTop <= changeInfo[i][1] && flag==0) {
+                $("sportName").innerHTML = cv.getSports()[changeInfo[i][0]];
+				var date1 = new Date();
+                $("curr_date").innerHTML = "&nbsp;&nbsp;"+(dayNames[date1.getDay()- 1])+', '+(monthNames[date1.getMonth()])+' '+ date1.getDate()+ ', '+date1.getFullYear();
+                $("spanTime").innerHTML = "&nbsp;&nbsp;"+date1.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});                flag=1;
+            }
+        }
+    } else
+        this.target.appendChild(this.generateScheduleView());
+    //this.target.appendChild(this.generateReservationTypeFooter());
+    //this.setSlotElementsFontSize();
+    this.fixedHeader(this.selectedTheme,'sched');
+    //this.target.appendChild(this.generateZoomFloatingPanel());
+   //this.bindFloatingEffect('zoomBoxFloating', 'zoomBox');
+    if (servTimeTimer)
+        clearInterval(servTimeTimer);
+    if (this.getShowTimeSeconds())
+        servTimeTimer = setInterval(this.displaySeconds, 1000);
+    else
+        servTimeTimer = setInterval(this.notDisplaySeconds, 1000);
+    
+    if(this.showToolTip)
+        document.getElementById('toolTip').style.maxWidth = '500px';
+};
+baseViewer.prototype.displaySeconds = function() {
+    displaytime(document.getElementById("servertime"), 1, false, true, false);
+};
+baseViewer.prototype.notDisplaySeconds = function() {
+    displaytime(document.getElementById("servertime"), 1, false, true, true);
+};
+baseViewer.prototype.generateChecking = function(booking,text,p,userInBooking,tooBig,i) {
+       var chkbxArr = [], chkbxPlr;
+        if (this.isCheckinViewable() && !this.isCollapsed() && !tooBig) {
+            var chImg = new Image();
+            var aImg = document.createElement('a');
+            if(this.selectedTheme == 'default_theme'){
+                aImg.setAttribute('style','text-decoration:none');
+            }else if(this.selectedTheme == 'wide_theme'){
+                aImg.setAttribute('style','text-decoration:none; margin-left:3px;');
+            }
+            aImg.classList.add('chk-bx');
+            chImg.setAttribute('style','vertical-align:text-top');
+            chImg.setAttribute('order',booking[this.occupants][i]['o']);
+            chImg.setAttribute('booking_id',booking.c);
+            chImg.setAttribute('isAdmin',this.isAdmin());
+            chImg.setAttribute('isDeveloper',this.isDeveloper());
+            chImg.setAttribute('Adminauthorizationcheckin',this.getAdminauthorizationcheckin());
+            chImg.setAttribute('Adminauthorizationcheckinadmin',this.getAdminauthorizationcheckinadmin());
+            chImg.setAttribute('clubnumbercheckin',booking.p[i].club);
+            chImg.setAttribute('pname',booking.p[i].n);
+            chImg.setAttribute('id', booking[this.occupants][i]['o']+'_'+booking.c);
+            if (text.search(/\[G\]/) != -1)
+                chImg.setAttribute('guest', 1);
+            else
+                chImg.setAttribute('guest', 0);
+            chkbxArr.push(chImg);
+            if ((this.isAdmin() && booking.a) || (this.getUserId() == booking[this.occupants][i]['u'] && booking.u)) {
+                chkbxPlr = chImg;
+                userInBooking = true;
+            }
+            chImg.classList.add('chkbx');
+            if (booking[this.occupants][i]['c']) {
+                if(this.getCheckinOrNoShow()=="checkin") {
+                    chImg.src = "/r/img/core/checkedin.png";
+                } else {
+                     chImg.src = "/r/img/core/noshow.png";
+                }
+                chImg.setAttribute('type', '0');
+            } else {
+                chImg.src = "/r/img/core/notcheckedin.png";
+                chImg.setAttribute('type', '1');
+            }
+            if (userInBooking || this.getShowAllCheckboxes()) {
+                aImg.appendChild(chImg);
+                p.appendChild(aImg);
+            }
+        }
+        
+        if (this.isCheckinEnabled() && !this.isCollapsed() && this.isCheckinDisable()) {
+            var gridDate = this.getDate();
+            var currDate = new Date(this.getDateFromStr(this.getCurrDate()));
+            var dateAllowed = (currDate <= gridDate);
+            if (userInBooking && ((this.getUserCanCheckinAll() && dateAllowed) || this.isAdmin()))
+                YAHOO.util.Event.addListener(chkbxArr, 'click', this.checkin);
+            else if (userInBooking && dateAllowed)
+                YAHOO.util.Event.addListener(chkbxPlr, 'click', this.checkin);
+            else if (userInBooking && this.getUserCanCheckinAll())
+                YAHOO.util.Event.addListener(chkbxArr, 'click', function(){alert('Sorry, but you cannot check this player in at this time.');});
+            else if (userInBooking)
+                YAHOO.util.Event.addListener(chkbxPlr, 'click', function(){alert('Sorry, but you cannot check this player in at this time.');});
+        }
+};
+
+var beforePrint = function() {
+//    var td = YAHOO.util.Dom.getElementsByClassName("timeslot");
+//    for(var t in td) {
+//        var height =  parseInt(td[t].style.height);
+//        if(td[t].className.indexOf("filler")==-1) {
+//            td[t].style.height = (height / 2) + 'px';
+//        } else {
+//            td[t].style.height = (height / 2.1) + 'px';
+//        }
+//    }
+
+    cv.disableFixedHeader();
+};
+var afterPrint = function() {   
+    cv.render();
+};
+if (window.matchMedia) {
+    var mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function(mql) {
+        if (mql.matches) {
+            beforePrint();
+        } else {
+            afterPrint();
+        }
+    });
+}
+
+window.onbeforeprint = function() {
+    beforePrint();
+}
+window.onafterprint =function() {
+    afterPrint();
+} 
+
+baseViewer.prototype.generateWideScheduleView = function(locs,page){
+    var table = document.createElement("table");
+    table.setAttribute('style','margin-top:170px');
+    table.classList.add('courtViewer');
+    table.setAttribute("id","table"+page);
+    table.setAttribute("name",locs[0].sid);
+    var courtNames = this.generateLocationNameTr(locs)[0];
+    var groupNames = this.generateLocationNameTr(locs)[1];        
+    table.appendChild(groupNames);
+    table.appendChild(courtNames);
+
+    // To get the smallest time if the booking's end time is greater than current time for display in wideview
+    if(this.isWideView()){
+       this.smallestWideviewSlotTime = this.getOpen();
+        for(var l in locs){
+            var bookings = locs[l].b;
+            if( Array.isArray(bookings) && bookings.length > 0 ){
+                for( var b in bookings){
+                    if( (bookings[b].t + bookings[b].d) >= this.getCTime() && this.smallestWideviewSlotTime > bookings[b].t ){
+                        this.smallestWideviewSlotTime = bookings[b].t;
+                    }
+                }
+            }
+        }
+    }
+
+    var tr = document.createElement("tr");
+    var multiGroups = false;
+    var timeCol = this.isGenerateHoursTd;
+    if (timeCol) {
+        var starttimeArr = new Array();
+        var endtimeArr = new Array();
+        var inctimeArr = new Array();
+        var maxtime = new Array();
+        for(var i in locs) {
+            if(locs[0].g!=locs[i].g)multiGroups = true;
+            for(var time in locs[i].t) {
+                starttimeArr.push(locs[i]['t'][time].t);
+                endtimeArr.push(locs[i]['t'][time].t + locs[i]['t'][time].d);
+                maxtime.push(locs[i]['t'][time].d);
+                inctimeArr.push(locs[i]['t'][time].i);
+            } 
+        }
+        if(multiGroups) {
+            var timeColLocs = new Array({t: new Array({'t': starttime,'i':30, 'd': endtime - starttime - 30})});
+            tr.appendChild(this.generateLocationTd(timeColLocs[0], 1, locs[0].length, true));
+        } else {
+            tr.appendChild(this.generateLocationTd(locs[0], 1, locs[0].length, true));
+        }
+    }
+    for(var i in locs) {
+        tr.appendChild(this.generateLocationTd(locs[i], 1, locs.length, false));
+        this.lockIt = true;
+    }    
+    table.appendChild(tr);
+    return table;
+};
+
+var getOffsetOfTables = function(totalNoOfTables) {
+    var offSets = new Array();
+    for(var i=1;i<=totalNoOfTables;i++) {
+        var r = $("table"+i).getBoundingClientRect();
+        offSets.push([$("table"+i).getAttribute("name"),r.bottom]);
+    }
+    offSets.sort(function(a,b) {
+      if (a[1] < b[1]) return(-1);
+      if (a[1] > b[1]) return(1);
+      return(0); 
+    });
+    return offSets;
+}
+
+baseViewer.prototype.activeKioskScreenView = function(){
+    var courtTables = YAHOO.util.Dom.getElementsByClassName('courtViewer','table');
+    var courtDiv = YAHOO.util.Dom.getElementsByClassName('courtViewerWide','div');
+    var kioskActionButton = YAHOO.util.Dom.getElementsByClassName('kioskActionButton','div');
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayNames= ["Monday","Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    var progressBar=$('progressBar');
+    currentShow = 0;
+    //check whether auto rotate started
+    if(!cv.isStartedAnimation){
+        if(typeof courtAnimation != 'undefined')clearInterval(courtAnimation);
+        kioskActionButton[0].classList.add('stop');
+        kioskActionButton[0].classList.remove("start");
+        courtDiv[0].style.overflow = 'hidden';
+        cv.isStartedAnimation = true;
+        for(i=0;i<courtTables.length;i++){
+            if(i!=currentShow)
+                courtTables[i].classList.add('hideTable');
+        } 
+        courtTables[currentShow].classList.add('showTable');
+        progressBar.classList.remove("hide");
+        courtAnimation = setInterval(function(){
+            courtTables[currentShow].classList.remove("showTable");
+            courtTables[currentShow].classList.add('hideTable');
+            if(currentShow < courtTables.length-1)
+                currentShow++;
+            else{
+                currentShow = 0;
+                //for refresh grid
+                if(cv.getAutoRefreshFlag()){
+                    //reset auto refresh flag. it will set automaticall after interval time
+                    cv.setAutoRefreshFlag(false);
+                    clearInterval(courtAnimation);
+                    cv.isStartedAnimation = false;                    
+                    courtViewer.prototype.refresh.call(cv);
+                    setTimeout(cv.activeKioskScreenView,4000);
+                }
+            }
+            var sportId = document.getElementById(courtTables[currentShow].id).getAttribute("name");
+            $("sportName").innerHTML = cv.getSports()[sportId];
+			var date1 = new Date();
+			//$("curr_date").innerHTML = "&nbsp;&nbsp;"+date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
+			$("curr_date").innerHTML = "&nbsp;&nbsp;"+(dayNames[date1.getDay()- 1])+', '+(monthNames[date1.getMonth()])+' '+ date1.getDate()+ ', '+date1.getFullYear();
+            $("spanTime").innerHTML = "&nbsp;&nbsp;"+date1.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});
+            courtTables[currentShow].classList.add('showTable');
+            courtTables[currentShow].classList.remove("hideTable");
+        },cv.getWideViewRefreshInterval()*1000);
+    }else{
+        //if auto rotate then stop it on next click
+        progressBar.classList.add('hide');
+        kioskActionButton[0].classList.add('start');
+        kioskActionButton[0].classList.remove("stop");
+       if(typeof courtAnimation != 'undefined')clearInterval(courtAnimation);
+        cv.isStartedAnimation = false;
+        for (i = 0; i < courtTables.length; i++) {
+            courtTables[i].classList.remove("hideTable");
+            courtTables[i].classList.remove("showTable");
+        }
+        var sportId = document.getElementById(courtTables[0].id).getAttribute("name");
+        $("sportName").innerHTML = cv.getSports()[sportId];
+		var date1 = new Date();
+		//$("curr_date").innerHTML = "&nbsp;&nbsp;"+date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
+		$("curr_date").innerHTML = "&nbsp;&nbsp;"+(dayNames[date1.getDay()- 1])+', '+(monthNames[date1.getMonth()])+' '+ date1.getDate()+ ', '+date1.getFullYear();
+        $("spanTime").innerHTML = "&nbsp;&nbsp;"+date1.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});
+        courtDiv[0].style.overflow = "scroll";
+    }
+}
