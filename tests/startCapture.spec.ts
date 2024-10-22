@@ -206,6 +206,8 @@ test.beforeEach(async ({ page }) => {
   
 });
 
+// command to run test 
+// npx playwright test --grep "day-6"
 test('day-0', async ({ page }) => {    
   await parseAndSave(page , 0)
 });
