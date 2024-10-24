@@ -106,6 +106,22 @@ function getRandomUser(): string | undefined {
   return filteredUsers[randomIndex];
 }
 
+function getDistinctCourtSlots(courtSlots: CourtSlot[]): CourtSlot[] {
+  return courtSlots.filter((slot, index, self) =>
+    index === self.findIndex((t) =>
+      t.courtNumber === slot.courtNumber &&
+      t.dateId === slot.dateId &&
+      t.timeId === slot.timeId &&
+      t.courtType === slot.courtType &&
+      t.p1 === slot.p1 &&
+      t.p2 === slot.p2 &&
+      t.p3 === slot.p3 &&
+      t.p4 === slot.p4 &&
+      t.runId === slot.runId
+    )
+  );
+}
+
 const daysOfWeek = getPSTDaysOfWeek();
 dotenv.config();
 const runId =  getCurrentPSTDateTime();
@@ -186,7 +202,7 @@ async function parseAndSave(page: Page, day) {
         
     }
     
-  await Database.batchInsert(courtSlots);
+  await Database.batchInsert(getDistinctCourtSlots(courtSlots));
 
 // Loop through the array and print the details of each CourtSlot object
   for (const courtSlot of courtSlots) {
