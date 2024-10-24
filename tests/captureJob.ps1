@@ -6,7 +6,7 @@ $startHour = 7
 $endHour = 22
 
 # Limit the number of runs per day
-$maxDailyRuns = 12
+$maxDailyRuns = 14
 
 # Function to generate a random delay between 45 to 75 minutes
 function Get-RandomDelay {
