@@ -1,0 +1,744 @@
+/* COURT VIEWER */
+#viewer {margin-top:15px;position: relative;}
+
+div.courtViewerWide table.courtViewer{background-color: #d5d5d5;}
+
+div.courtViewerWide .hideTable {
+    -ms-animation-name: hideAni;
+    -ms-animation-duration: 1s;
+    -moz-animation-name: hideAni;
+    -moz-animation-duration: 1s;
+    -webkit-animation-name: hideAni;
+    -webkit-animation-duration: 1s;
+    animation-name: hideAni;
+    animation-duration: 1s;
+    display: none;
+}
+div.courtViewerWide .showTable {
+    -ms-animation-name: showAni;
+    -ms-animation-duration: 1s;
+    -moz-animation-name: showAni;
+    -moz-animation-duration: 1s;
+    -webkit-animation-name: showAni;
+    -webkit-animation-duration: 1s;
+    animation-name: showAni;
+    animation-duration: 1s;
+    display : table;
+}
+@-ms-keyframes showAni {from {display: table;opacity:0;}to {opacity:1;}}
+@-moz-keyframes showAni {from {display: table;opacity:0;}to {opacity:1;}}
+@-webkit-keyframes showAni {from {display: table;opacity:0;}to {opacity:1;}}
+@keyframes showAni {from {display: table;opacity:0;}to {opacity:1;}}
+
+@-ms-keyframes hideAni {from {opacity:1;}to {display: none;opacity:0;}}
+@-moz-keyframes hideAni {from {opacity:1;}to {display: none;opacity:0;}}
+@-webkit-keyframes hideAni {from {opacity:1;}to {display: none;opacity:0;}}
+@keyframes hideAni {from {opacity:1;}to {display: none;opacity:0;}}
+
+div.courtViewerWide .progress-bar.hide{display: none;}
+@-ms-keyframes progress {0% { width: 0; } 100% { width: 100%; }}
+@-moz-keyframes progress {0% { width: 0; } 100% { width: 100%; }}
+@-webkit-keyframes progress {0% { width: 0; } 100% { width: 100%; }}
+@keyframes progress {0% { width: 0; } 100% { width: 100%; }}
+
+div.courtViewerWide{
+    background: none repeat scroll 0 0 #fff;
+    bottom: 0;
+    left: 0;
+    overflow: scroll;
+    position: fixed;
+    right: 0;
+    text-align: center;
+    top: 0;
+    z-index: 111;
+    width: 100%;
+    zoom: 80%;
+}
+html.wideview{
+    overflow-y: hidden;
+    overflow-x: hidden;
+    zoom:1.2;
+}
+div.courtViewerWide div.title span.desc{
+    display: inline;
+}
+
+div.courtViewerWide div.wideViewSportHeader .kioskActionButton{
+    height : 24px;
+    width : 24px;
+    margin-top:8px;
+    margin-right:28px;
+    cursor: pointer;
+}
+div.courtViewerWide div.wideViewSportHeader #collapseFullScreen{
+    margin: 7px;
+    padding: 4px;
+    border-radius: 5px;
+    float: right;
+}
+div.courtViewerWide div.wideViewSportHeader #collapseGridButton{border:0;margin-top:8px;margin-right:25px;}
+
+div.courtViewerWide div.wideViewSportHeader #clubImg{
+    padding-bottom: 0px;
+    margin-left: 20px;
+/*    max-height: 79%;
+    height: auto;*/
+    overflow: auto;
+/*    max-width: 250px;*/
+}
+
+div.courtViewerWide div.wideViewSportHeader .kioskActionButton.start{
+    background-image: url("/r/img/core/new_play.png"); 
+    background-repeat: no-repeat;
+    margin-right: 43px;
+    margin-top: 25px;
+}
+
+div.courtViewerWide div.wideViewSportHeader .kioskActionButton.stop{
+    background-image: url("/r/img/core/new_pause.png") ; 
+    background-repeat: no-repeat;
+    margin-right: 36px;
+    margin-top: 25px;
+}
+
+
+div.courtViewerWide div.wideViewSportHeader a img.scrollButton.stop {
+    border:0;margin-top:8px;margin-right:25px;opacity:0.5;
+}
+
+div.courtViewerWide table.courtViewer th.courtgroupheading {
+    border-left: 1px solid #b2b2b2;
+    color:white;
+    font-weight: bold;
+    border-bottom: 1px solid #b2b2b2;
+    height: 20px;
+}
+div.courtViewerWide div.wideViewSportHeader span#sportName{
+    position: relative;
+    top: 35px;
+    font-size: 35px;
+    left : 50px;
+    color: #fff;
+}
+div.courtViewerWide div.wideViewSportHeader span#curr_date{
+    position: relative;
+    top: 55px;
+    left: 52px;
+    font-size: 35px;
+    color: #fff;
+}
+
+div.courtViewerWide div.wideViewSportHeader span#gtspan{
+    position: relative;
+    top: 25px;
+    font-size: 20px;
+    color: #fff;
+    float: right;
+    right: 85px;
+}
+
+div.courtViewerWide div.wideViewSportHeader span#spanTime{
+    position: relative;
+    top: 51px;
+    font-size: 35px;
+    color: #fff;
+    float: right;
+    left: -70px;
+}
+
+div.courtViewerWide div.wideViewSportHeader {
+    background-color: #9BC500;
+    border-bottom: 1px solid #666;
+    height: 170px;
+    width: 100%;
+    position: fixed;
+    z-index: 20;
+    top: 0;
+    left: 0;
+   box-shadow: 0px 0px 4px;
+}
+
+div.courtViewerWide div.wideViewAdv {
+    background-color: #444;
+    border-top: 1px solid #ccc;
+    height: 40px;
+    width: 100%;
+    position: fixed;
+    z-index: 99;
+    bottom: 0;
+    left: 0;
+}
+div.courtViewerWide div.wideViewAdv span.bottomAdvContent{
+    position: relative;
+    color: #EEE;
+    top: 13px;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+div.courtViewerWide div.wideViewAdv span#gtAdvSpan{float:right;margin-right: 15px;}
+div.courtViewerWide div.wideViewAdv span#clubNameSpan{float:left;margin-left: 15px;text-transform: uppercase;}
+
+div.courtViewerWide table.courtViewer div.wideViewSportHeader.visible span {
+    text-align: center;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+
+table.courtViewer td {
+    padding: 0;
+}
+
+table.courtViewer td.timeslot {
+    width:200px;
+    border-left: 1px solid white;
+    font-size: 12px;
+    color: black;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+table.courtViewer td.timeslot div.title {
+    /*height: 12px;*/
+/*    width: 100%;*/
+    /* width: 90%; */
+    /* padding: 0 5%; */
+    color: #FFF;
+    background-color: #000;
+    opacity: 0.5; /* Safari, Opera */
+    -moz-opacity:0.50; /* FireFox */
+    filter: alpha(opacity=50); /* IE */
+    /*font-size: 11px;*/
+    /*font-weight: bold;*/
+    /*line-height: 12px;*/
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: left;
+    padding:3px 0px 0px 5px;
+}
+/* scrollbar css */
+table.courtViewer td div.timeslot:hover{
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+table.courtViewer td div.timeslot::scrollbar{width: 6px;background-color: #F5F5F5;}
+table.courtViewer td div.timeslot::scrollbar-thumb{background-color: #666;}
+table.courtViewer td div.timeslot::-webkit-scrollbar{width: 4px;}
+table.courtViewer td div.timeslot::-webkit-scrollbar-thumb{background-color: #6666664a;}
+table.courtViewer td div.timeslot::-moz-scrollbar{width: 6px;background-color: #F5F5F5;}
+table.courtViewer td div.timeslot::-moz-scrollbar-thumb{background-color: #666;}
+table.courtViewer td div.timeslot::-ms-scrollbar{width: 6px;background-color: #F5F5F5;}
+table.courtViewer td div.timeslot::-ms-scrollbar-thumb{background-color: #666;}
+
+table.courtViewer td.timeslot div.names {
+  /*  padding: 5px; */
+    margin-top:2px;
+    padding-bottom: 3px;
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+  /*  float: left; */
+  /*  width: 100px; */
+    color: #000;
+}
+table.courtViewer td.timeslot div.names a {
+    cursor: pointer;
+}
+
+table.courtViewer td.timeslot img.notes {    
+    width: 15px;
+    margin: 0 1px;
+}
+table.courtViewer td.timeslot img.med-note{    
+    width: 11px;
+    display: inline-block;
+    margin-left: 6px;
+    position: absolute;
+    right: 12px;
+    top: 0px;
+}
+table.courtViewer td.timeslot div.fee-indication{    
+    display: inline-block;
+    font-size: 8px;
+    padding: 2px;
+    line-height: 7px;
+    margin-left: -1px;
+    border-radius: 2px;
+    margin-right: 3px;
+}
+table.courtViewer td.timeslot div.fee-indication.pending{    
+    background-color: #008000;
+    color: #fff;
+}
+table.courtViewer td.timeslot div.fee-indication.completed{    
+    background-color: #7B7B7B;
+    color: #fff;
+}
+
+table.courtViewer td.timeslot img.res-img {
+    width: 9px;
+    margin: 0 3px 1px;
+}
+
+table.courtViewer td.timeslot div.space-text {
+    position: absolute;
+    padding: 0 1px 0 2px;
+    bottom: 16px;
+    right: 0;
+    color: #000;
+    height: 16px;
+    background-color: #fff;
+    display: block;
+    min-width: 58px;
+}
+
+table.courtViewer div.timeslot:hover div.space-text {
+    display: none;
+}
+
+.staff table.courtViewer td.timeslot div.space-text {
+    bottom: auto;
+    top: 13px;
+}
+
+table.courtViewer td.timeslot div.space-text .spaces-count{    
+    font-weight: bold;
+}
+ 
+table.courtViewer td.timeslot div.edit {
+    visibility: hidden;
+    z-index: 97;
+}
+
+table.courtViewer td.timeslot div:hover div.edit {
+    visibility: visible;
+ /*   margin: 5px; */
+    padding: 0 2px;
+    float: right;
+    color: #cc3300;
+    border: 1px solid #666;
+    width: 30px;
+    height:13px;
+    line-height: 13px;
+    vertical-align: middle;
+    background-color: #FFF;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+table.courtViewer td.timeslot div.signup{
+    visibility: visible;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    float: right;
+    color: #cc3300;
+    border: 1px solid #666;
+    width: 60px;
+    height:14px;
+    line-height: 14px;
+    vertical-align: middle;
+    background-color: #FFF;
+    cursor: pointer;
+} 
+table.courtViewer td.timeslot div.join{
+    background: #97CB65;
+    color: #fff;
+    border-radius: 20px;
+    position: absolute;
+    bottom: 3px;
+    left: 2px;
+    width: 50px;
+    box-shadow: 0px 3px 5px #a7a5a5;
+    cursor: pointer;
+}
+
+table.courtViewer td.timeslot div.signup_nolink{
+    visibility: visible;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    float: right;
+    color: #cc3300;
+    border: 1px solid #666;
+    width: 60px;
+    height:14px;
+    line-height: 14px;
+    vertical-align: middle;
+    background-color: #FFF;
+} 
+
+table.courtViewer td.timeslot div.details {
+    padding: 5px;
+    width: 100px;
+    color: #c30;
+    font-size: 9px;
+}
+
+table.courtViewer td.timeslot div.time {
+    /*visibility:hidden;*/
+/*    width: 100%; */
+/*    text-align: left; */
+    position: absolute;
+    top: 0;
+    padding: 3px 5px 3px 5px;
+    /*opacity: 0.7; /* Safari, Opera */
+    /*-moz-opacity:0.7; /* FireFox */
+    /*filter: alpha(opacity=70); /* IE */
+}
+table.courtViewer td.timeslot .table-pname{position: relative;}
+table.courtViewer td.timeslot .more-players{margin-left:5px !important; text-align:left !important;}
+table.courtViewer td.timeslot div.hover div.time {
+    visibility:visible;
+    opacity: 1; /* Safari, Opera */
+    -moz-opacity:1; /* FireFox */
+    filter: alpha(opacity=100); /* IE */
+}
+table.courtViewer td.timeslot div.timenotitle {
+    /*height: 12px;*/
+    color: #000;
+    /*opacity: 0.6; /* Safari, Opera */
+    /*-moz-opacity:0.60; /* FireFox */
+    /*filter: alpha(opacity=60); /* IE */
+    /*font-size: 11px;*/
+    /*font-weight: bold;*/
+   /*line-height: 12px;*/
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: left;
+    margin: 0px 3px 0px 5px;
+    padding:3px 0 0 5px;
+}
+/*
+table.courtViewer td.timeslot div.time-container {
+    visibility:hidden;
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    top: 0;
+}
+table.courtViewer td.timeslot div.hover div.time-container {
+    visibility:visible;
+}
+*/
+table.courtViewer td.timeslot span.time-booked {
+    /* width: 100%; */
+    /* text-align: center; */
+    color: #fff;
+    margin: 0 3px 0 0;
+    /*padding: 0 2px;*/
+}
+table.courtViewer td.timeslot a.link_class {
+    color: #FFFFFF;
+    margin: 0 5px;
+    padding: 0;
+}
+
+table.courtViewer td.timeslot div.hover span.time-booked {
+    visibility:visible;
+}
+
+table.courtViewer td.timeslot p {
+    margin: 0;
+    height: 11px;
+    text-align: left;
+    padding:0 0 0 2px;
+}
+
+
+table.courtViewer th.courtheading {
+    border-left: 1px solid #b2b2b2;
+    color:white;
+    font-weight: normal;
+}
+
+#cv-timeColumn {
+    width: 63px;
+}
+
+table.courtViewer div.hour {
+    width: 67px;
+    background-color: #efefef;
+    font-family: Arial, sans-serif;
+    color: #333;
+    text-align:right;
+    padding-top:4px;
+}
+table.courtViewer div.timeslot {
+    width: 100%;
+    background-color: #e6e2bf;
+    text-align: center;
+    color: #666;
+    border-bottom: 1px solid #fff;
+    position: relative;
+}
+table.courtViewer div.timeslot.odd {
+    background-color: #eeeaca;
+}
+table.courtViewer td.timecolslot {
+    vertical-align: top;
+    border-left: 1px solid #b2b2b2;
+}
+table.courtViewer div.timeslot.timeCol {
+    background-color: #666;
+    color: #CCC;
+}
+table.courtViewer div.timeslot.timeCol.time {
+    margin-top:15px;
+}
+table.courtViewer div.timeslot.filler {
+    background-color: #d5d5d5;
+}
+table.courtViewer div.timeslot:hover:not(.timeCol):not(.filler)  {
+    background-color: #fbfbd0;
+}
+
+
+
+#cv_actions {float:right;}
+
+#cv_date {float:left;}
+
+#cv_today{padding:0 0 0 24px;float:left;}
+
+
+#cv_time{padding:0 0 0 24px;float:left;color: #333;}
+
+/* GROUP HEADER */
+div.groupHeader {
+    width:100%;
+    /*margin: 8px 0;*/
+    text-align: center;
+    color: #c60;
+    font-family: Arial, sans-serif;
+}
+div.groupHeader span {
+    margin: 0 20px;
+    font-size: 10.2pt;
+}
+div.groupHeader a {
+    cursor: pointer;
+    color: #666;
+}
+div.groupHeader a:hover {
+    text-decoration: none;
+}
+
+/* MONTH PICKER */
+#cv_date {cursor:pointer;}
+
+.yui-skin-sam div#calContainer.yui-calcontainer {
+    background-color:#FFF !important;
+    border:1px solid #808080 !important;
+    padding:0 10px 10px 20px !important;
+    display:none;
+    position:absolute;
+    z-index:100;
+    width: 580px;
+}
+
+#calContainer .title{display: none;}
+#calContainer .yui-calendar td.calcell.oom{background-color: #F7F7F7;color: #F7F7F7;}
+#calContainer .yui-calendar td.calcell{background-color: #F0F0F0;border-color: #fff;}
+#calContainer .yui-calendar td.calcell a{color: #90C53E;}
+#calContainer .yui-calendar .calweekdayrow th{padding: 0 4px;}
+#calContainer .yui-calendar .calheader{font-size: 18px;font-weight: normal;text-align: left;}
+#calContainer .yui-calendar .calnavleft{top: 105px !important;left: -35px;background: url("/r/img/core/green_icons_sprite.png");height: 18px;width: 15px;}
+#calContainer .yui-calendar .calnavright{top: 105px;right: -34px;background: url("/r/img/core/green_icons_sprite.png") -15px;height: 18px;width: 15px;}
+#calContainer .calclose{background: url("/r/img/core/green_icons_sprite.png") -30px;height: 18px;width: 12px;}
+#calContainer .groupcal{padding: 10px 20px;}
+#calContainer .yui-calendar .calweekdayrow th{color: #919191;}
+#calContainer .yui-calendar td.calcell.selected{}
+#calContainer .yui-calendar td.calcell.selected a{color: #FFFFFF;background-color: #A8DB1C;}
+#calContainer .yui-calendar td.calcellhover a{background-color: #88AE00;color: #FFFFFF;}
+#zoomBox {
+    text-align:right;
+    display:block;
+    margin-top: 30px;
+    width: 25px;
+    position: absolute;
+    top: 60px;
+    right: -25px;
+/*    border-top: 1px solid grey;
+    border-right: 1px solid grey;
+    border-bottom: 1px solid grey;*/
+    text-align: center;
+}
+#zoomBox a {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+/*    text-indent: -1000px;*/
+    overflow:hidden;
+    margin: 2px 0 2px 0;
+    cursor: pointer;
+}
+
+#zoomBox a.disabled {
+    opacity: 0.5;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+}
+#zoomBox a.collapse {
+    opacity: 0.4;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+    filter: alpha(opacity=40);
+}
+
+/* DATE PICKER */
+#dateSelector {
+    position: relative;
+    margin-bottom: 18px;
+}
+#dateSelector-picker {
+    max-width: 100%;
+    margin:0 auto;
+    border-bottom: 1px solid #85b4d2;
+}
+#dateSelector-picker * {
+    display:block;
+}
+#dateSelector-picker a {
+    text-decoration:none;
+}
+#dateSelector-picker ul {
+    overflow:auto;
+    padding: 4px 16px 0 18px;
+    display: table;
+    margin: 0 auto;
+}
+#dateSelector-picker ul li {
+    float:left;
+}
+
+#dateSelector-picker ul li {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat right top;
+    margin-left:0px;
+}
+#dateSelector-picker ul li a {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat left -70px;
+    padding: 0 4px;
+}
+#dateSelector-picker ul li a span {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) repeat-x 0 -35px;
+    padding: 6px 0 2px;
+    color: #000;
+    font-size: 14px;
+    width: 120px;
+    text-align: center;
+}
+
+#dateSelector-picker ul li.active {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat right -105px;
+    margin-top:-4px;
+}
+
+#dateSelector-picker ul li.active a {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat left -171px;
+}
+
+#dateSelector-picker ul li.active a span {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) repeat-x 0 -138px;
+    font-weight:bold;
+    padding:7px 0 5px;
+}
+
+#dateSelector-picker ul li:hover {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat right -105px;
+}
+#dateSelector-picker ul li:hover a {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) no-repeat left -171px;
+}
+#dateSelector-picker ul li:hover a span {
+    background: url(/r/img/scheduling/cv_tabs_sprite.gif) repeat-x 0 -138px;
+}
+
+th.courtheading .cv_date_arrow span {display:none; }
+#dateSelector .cv_date_arrow span {display:none; }
+
+th #dateSelector-left{
+    left: -20px;
+}
+th #dateSelector-right{
+    right: -20px;
+}
+
+#dateSelector-left a {
+    background: url(/r/img/scheduling/arrow_sprite.gif) no-repeat left -15px;
+    width: 13px;
+    height: 15px;
+    display:block;
+}
+
+
+#dateSelector-right a {
+    background: url(/r/img/scheduling/arrow_sprite.gif) no-repeat 4px top;
+    width: 13px;
+    height: 15px;
+    display:block;
+}
+
+
+/* LEGEND */
+div.legend  table.legend {
+    width: 95%;
+    margin: 0 2.5%;
+}
+div.legend div.rtype {
+    border: 1px solid #999;
+    width: 46px;
+    height: 17px;
+}
+div.legend div.rtypelhalf {
+    border: 1px solid #999;
+    border-right: 0;
+    width: 23px;
+    height: 17px;
+}
+div.legend div.rtyperhalf {
+    border: 1px solid #999;
+    border-left: 0;
+    width: 23px;
+    height: 17px;
+}
+
+/* OTHER STUFF */
+div#wrapper_content.white_bg div#top {
+    height: 0;
+    margin: 0;
+}
+div#wrapper_content.white_bg div#body {
+    border: none;
+}
+div#wrapper_content.white_bg div#bottom {
+    height: 0px;
+}
+
+iframe.yui-history {
+    position: absolute;
+    width: 2em;
+    height: 2em;
+    top: -31px;
+    left: 0px;
+    border-top-width: 0px;
+    border-right-width: 0px;
+    border-bottom-width: 0px;
+    border-left-width: 0px;
+    visibility: visible;
+}
+
+.cne-details a:link, .cne-details a:hover, .cne-details a:visited  {
+  color: white;  
+}
+
+table.courtViewer #toolTip {
+    visibility: visible; max-width: 500px;
+}
+
+table.courtViewer td.timeslot div.name {
+    position: absolute;
+    left: 10px;
+    top: 25px;
+}

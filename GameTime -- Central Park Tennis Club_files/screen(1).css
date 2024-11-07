@@ -1,0 +1,714 @@
+/** 
+ * TIER2 NAVIGATION 
+ *
+ * @author Umair Kayani 
+ */
+/* t2tabs styles START */
+
+#t2tabs {
+    float: left;
+    padding-left: 1px;
+}
+
+#t2tabs li {
+    height: 32px;
+    display:block;
+    float:left;
+    background: url(/r/img/core/tabs_sprite.png) no-repeat left -32px;
+    margin-left: -1px;
+}
+#t2tabs li span {
+    height: 32px;
+    display:block;
+    background: url(/r/img/core/tabs_sprite.png) no-repeat right 0px;
+    padding: 0 3px;
+}
+#t2tabs li span a {
+    display:block;
+    height: 21px;
+    border-top: 1px solid #cacaca;
+    background-color: #eaeaea;
+    padding: 7px 9px 3px 9px;
+    color: #222;
+    font-weight: bold;
+}
+
+#t2tabs li.active {
+    background: url(/r/img/core/tabs_sprite.png) no-repeat left -64px;
+    margin-right: 1px;
+}
+#t2tabs li.active span {
+    background: url(/r/img/core/tabs_sprite.png) no-repeat right -96px;
+}
+#t2tabs li.active span a {
+    color: #fff;
+    border-color: #333;
+    background-color: #333;
+}
+#t2tabs li.active span a:hover {
+    text-decoration:none;
+}
+
+/* t2navActions style START */
+
+#t2navActions {
+        float:right;
+        margin-top:8px;
+        margin-right:7px;
+        margin-bottom: 8px;
+        overflow:auto;
+}
+
+#t2navActions li{
+    border-left: 1px solid #bebebe;
+    padding:0 7px 0 8px;
+    min-height: 18px;
+    float:left;
+}
+#t2navActions li:first-child {
+    border:none;
+}
+
+/* setup action icons here 
+ * NOTE: icon_add/icon_remove are already defined in core
+*/
+#t2navActions li.icon {
+    padding-left:32px;
+}
+#t2navActions li.icon_add {
+    background-position: 8px 0px;
+}
+#t2navActions li.icon_remove {
+    background-position: 8px -37px;
+}
+
+#t2.wtb{border: none;height: auto;}
+div.t2Message1{width: 540px;color: #CC6600;font-weight: 400; background: white;margin: 5px 0;padding: 2px 0 0 10px;}
+div.t2Message2{color: #666;margin: 5px 0;padding: 2px 0 0 10px;}
+div.t2Message3{margin:0 auto;background: #f4f4f4;padding: 7px;color: #666;}
+
+/*** Manager GTAccess ***/
+/*
+#roleForm fieldset {
+	padding: 5px;
+}
+
+#roleForm .text {
+	width: 100px;
+}
+
+#roleForm dl dt {
+	width: 25px;
+}
+
+#roleForm .lvl1 {
+	width: 5px;
+	padding: 8px 0;
+}
+
+
+
+
+codeTableForm.outer {
+				display: table;
+				position: static;
+				height: 40px;
+				position: relative;
+}
+
+.inner {
+				display: table-cell;
+				vertical-align: middle;
+}
+
+.content {
+				
+}
+
+.right_panel {
+				float: right;
+				width: 180px;
+				height: 800px;
+}
+
+.file {
+				padding: 10px 25px 25px 25px;
+				background: #EEEEEE;
+}
+*/
+.upload_bar {
+				background: #4e4e4e;
+				height: 70px;
+				padding: 0 20px;
+}
+
+#upload_nav {
+				margin: 0;
+				position: relative;
+				padding-top: 20px;
+}
+
+#upload_nav li {
+				float: left;
+				margin: 0;
+				width: 275px;
+				height: 20px;
+				font-weight: bold;
+				text-decoration: none;
+				list-style: none;
+				color: white;
+				text-align: center;
+}
+
+.upload_marker {
+				background: blue;
+				position: relative;
+}
+
+.upload_marker li {
+				float: left;
+				margin: 0;
+				width: 275px;
+				height: 10px;
+				font-weight: bold;
+				text-decoration: none;
+				list-style: none;
+				background: #878787;
+				height: 10px;
+}
+
+.upload_marker .upload_selected {
+				background: #7faf31;
+				height: 10px;
+}
+/*
+.partsContainer {
+				background: #2e2e2e;
+				width: 570px;
+}
+
+.partsContainer .gridContainer {
+				background: #fff;
+				height: 350px;
+				border-top: 1px solid #000;
+				border-left: 1px solid #000;
+}
+
+.partsContainer .gridContainer table {
+				width: 475px;
+}
+
+/*
+uncomment if needed somewhere? -Dom
+
+#name {
+	font-family:"Century Gothic", Verdana,Arial,Helvetica,sans-serif;
+	width:500px;
+	padding:0.5em 0.5em 0 0.5em;
+	margin:0;
+	color:#fff;
+	background:#2e2e2e;
+	font-weight:normal;
+	-moz-border-radius-topleft:8px;
+	-moz-border-radius-topright:8px;
+	-webkit-border-top-left-radius:8px;
+	-webkit-border-top-right-radius:8px;
+	-webkit-box-shadow: 2px 2px 11px #888;
+}
+*//*
+.dojoxGrid-row-odd td {
+				background: #BBB;
+}
+
+.dojoxGrid-header .dojoxGrid-cell {
+				height: 40px;
+				background-color: #EEE;
+				background-image: none;
+}
+*/
+/* codeTable Theme for datatable and regular tables */
+.yui-skin-sam .superTable table.codeTable, table.codeTable {
+				width: 100%;
+				background: white;
+                                padding: 5px;
+                                -moz-border-radius:3px;
+                                border: 1px solid #ccc;
+}
+.yui-skin-sam .superTable table.codeTable .yui-dt-liner {
+    padding:0;
+}
+
+
+.yui-skin-sam .superTable table.codeTable th, table.codeTable th {
+				background-color: #649506;
+				height: 26px;
+				font-size: 1.0em;
+				color: white;
+				padding: 9px 0px 9px 9px;
+				font-weight: bold;
+				text-align: left;
+}
+
+table.codeTable th.cbth {
+    width: 70px;
+}
+.yui-skin-sam .superTable table.codeTable tr:first-child td, table.codeTable tr:first-child td{
+    border-top:none;
+}
+.yui-skin-sam .superTable table.codeTable td, table.codeTable td {
+				padding: 9px 0px 9px 9px;
+				border-top: 1px solid #eee;
+}
+#codeTitle {
+				padding: 12px;
+				color: #18191B;
+				font-size: 1.5em;
+				font-weight: 700;
+}
+
+#codeTitleEdit {
+				color: #666666;
+				padding: 12px;
+				font-size: 1.5em;
+				font-weight: 700;
+}
+
+.codeRow1 {
+				background: #F2F2F2;
+}
+
+.codeRow {
+				background: none;
+}
+
+.codeRow2 {
+				background: #fcfacd;
+}
+
+
+#codeWrapper {
+				background: #2A2A2A
+}
+
+#codeInner {
+				background: #E0E8F1;
+				margin: 15px;
+}
+
+#codeLinks a {
+				color: grey;
+}
+
+#fieldset-codeForm {
+				border: none;
+}
+
+#fieldset-codeForm legend {
+				text-align: right;
+				color: grey;
+				padding: 15px;
+				margin-left: 400px;
+				font-size: 2em;
+				font-weight: 900px;
+}
+
+#moduleTabs-TabContainer {
+				margin: 15px;
+}
+
+#moduleTabs-TabContainer .dijitTab {
+				background: none;
+				border: none;
+				color: #2E2E2E;
+				font-weight: 700;
+				margin: 1px;
+}
+
+#moduleTabs-TabContainer .dijitTabChecked {
+				background: white;
+				border-right: 0px solid #CCC;
+				color: #2E2E2E
+}
+
+#moduleTabs-TabContainer .hint {
+				font-size: 1.1em;
+}
+
+.tabInnerTitle {
+				background: #B3E021;
+				color: #2E2E2E;
+				width: 675px;
+				text-align: center;
+				padding: 8px 0;
+				font-size: 1.7em;
+				font-weight: 700;
+}
+
+.dijitTabContainerLeft-dijitContentPane {
+				padding: 10px;
+				background: green;
+}
+
+.tabInnerFieldset {
+				border: 0px;
+				margin: 25px;
+}
+
+.tabInnerHeader {
+				color: #FE5D0D;
+				font-weight: 700;
+}
+
+.tabInnerContent {
+				margin: 10px 35px;
+}
+
+.errors {
+				list-style: none;
+				color: red;
+				margin: 0.3em 0 0.5em 110px;
+}
+
+.errors li {
+				
+}
+
+.scheduler {
+				margin: 10px 35px;
+}
+
+.gt_schedule_type_off {
+				background: #AAA;
+				width: 20px;
+				height: 20px;
+}
+
+.gt_schedule_type_on {
+				background: #9FC33E;
+				width: 20px;
+				height: 20px;
+}
+
+.gt_schedule_type_1 {
+				background: #559CC3;
+				width: 20px;
+				height: 20px;
+}
+
+.gt_schedule_type_2 {
+				background: #99CCFF;
+				width: 20px;
+				height: 20px;
+}
+
+.gt_schedule_type_3 {
+				background: #9C64AF;
+				width: 20px;
+				height: 20px;
+}
+
+.partsContainer {
+				background: #2e2e2e;
+				padding: 1em;
+				width: 500px;
+				-webkit-box-shadow: 2px 8px 11px #888;
+}
+
+.partsContainer .gridContainer {
+				background: #fff;
+				height: 350px;
+				border-top: 1px solid #000;
+				border-left: 1px solid #000;
+}
+
+.dojoxGrid-row-odd td {
+				background: #e8f2ff;
+}
+
+#filterSearch {
+				text-align: center;
+				line-height: normal;
+				margin: 0 19px;
+}
+
+#filterSearch #left {
+				float: left;
+				text-align: left;
+				width: 215px;
+}
+
+#filterSearch #right {
+				float: right;
+				text-align: right;
+				width: 335px;
+}
+
+#formFilterSearch dl {
+				margin: 0;
+}
+
+#formFilterSearch dl label {
+				padding: 0 5px;
+}
+
+#reportsHeader {
+				padding: 15px;
+}
+
+.wrapperblueborder #logo {
+				float: left;
+				background: url(/r/img/reports/graphs.gif) no-repeat;
+				width: 50px;
+				height: 48px;
+				margin: 10px 10px;
+				padding: 0 0 0 65px;
+				color: #666;
+				line-height: 48px;
+				font-size: 1.4em;
+				font-weight: bold;
+}
+
+#reportsHeader #categories {
+				float: right;
+				font-size: .9em;
+}
+
+#reportsHeader #categories a {
+				padding: 0 10px;
+				border-right: 1px solid grey;
+}
+
+#reportsHeader #categories a.last {
+				border: none;
+}
+
+#reportsBody {
+				clear: both;
+				margin: 0 35px;
+}
+
+#reportsBody .header {
+				padding: 15px 0;
+				margin: 0;
+                                
+				/* XXX: there's an element called #header in default.css that's overriding margin and height */
+                                
+				height: auto;
+				color: #666;
+				text-align: center;
+				font-size: 1.4em;
+				border-bottom: 5px solid #BBB;
+}
+
+#reportsBody .header .closeBtn {
+				float: left;
+				position: relative;
+				top: 25px;
+				left: -25px;
+				height: 12px;
+				width: 12px;
+				background: url(/r/img/reports/plus.gif) center center no-repeat;
+}
+
+#reportsBody ul {
+				margin: 0 0 35px 0;
+				padding: 15px 35px 0;
+				list-style-image: url(/r/img/reports/arrow.gif);
+}
+
+#reportsBody li {
+				padding: 10px 0;
+				border-bottom: 1px dotted #AAA;
+				color: #666;
+}
+
+#reportsBody li.off a {
+				color: grey !important;
+}
+
+#reportsBody li.last {
+				border: none;
+}
+
+#reportsBody a.title {
+				font-size: 1.1em;
+				font-weight: bold;
+}
+
+#reportsBody span {
+				margin: 0 1em;
+}
+
+#reportsBody a.title:hover {
+				text-decoration: none;
+}
+
+/* participants listing page */
+#cneParticipantsHeader {
+				padding: 0 30px;
+				background: #424242;
+				color: white;
+				line-height: 25px;
+				font-size: 1.1em;
+				font-weight: bold;
+}
+
+#cneParticipantsBody {
+				background: none;
+}
+
+#cneParticipantsBody table {
+				background: white;
+}
+
+#cneParticipantsBody #registered {
+				font-weight: bold;
+				text-align: center;
+				margin: 0 0 5px 0;
+}
+
+#cneParticipantsBody table {
+				margin: 10px 0 0;
+				background: white;
+				border-collapse: collapse;
+				padding: 0;
+				width: 100%;
+                                clear: both;
+}
+
+#cneParticipantsBody table th {
+				text-align: left;
+				padding: 2px 3px;
+				color: white;
+}
+
+#cneParticipantsBody table td {
+				padding: 2px 3px;
+}
+
+#cneParticipantsBody table#participants th {
+				background: #2E557E;
+}
+
+#cneParticipantsBody table a.name {
+				color: #1762AE;
+				font-weight: bold;
+}
+
+#cneParticipantsBody table#participants .waitlist {
+				background: #FFFFDB;
+}
+
+#cneParticipantsBody table#participants .waitlist td {
+				padding: 5px 10px 6px;
+}
+
+#cneParticipantsBody table#participants .waitlistEntry {
+				float: left;
+				background: #FF7E00;
+				padding: 4px 8px;
+				color: white;
+				font-weight: bold;
+}
+
+#cneParticipantsBody table#participants .emailSent {
+				float: left;
+				line-height: 23px;
+				background: url(/r/img/cne/icon_email_sm.gif) left center no-repeat;
+				padding: 0 0 0 30px;
+				margin: 0 0 0 10px;
+				font-size: .8em;
+}
+
+#cneParticipantsBody table#participants .altRowColor {
+				background: #F6F6F6;
+}
+
+#cneParticipantsBody table#waitlist th {
+				background: #FF7E00;
+}
+
+#cneParticipantsBody table .dijitButtonText {
+				width: 115px;
+				text-align: left;
+}
+
+.appointments {
+				background: white;
+				border: 1px solid #ccc;
+				width: 98%;
+}
+
+.appointments th {
+				background: #666;
+				color: white;
+				font-size: 1.1em;
+				font-weight: 700;
+				padding: 5px 10px;
+}
+
+.appointments td {
+				color: #0259b2;
+				font-weight: 700;
+				padding: 10px 10px;
+}
+
+.appointments #row1 {
+				background: #eee;
+}
+
+.appointments #rowHover {
+				background: #f3ecb0;
+}
+.greyTable {
+				
+}
+
+.greyTable th {
+				background: #797979;
+				font-weight: 500;
+				color: white;
+				padding: 5px 10px;
+				text-align: left;
+}
+
+.greyTable .cbtd {
+				width: 10px;
+}
+
+.greyTable tbody {
+				background: #F2F2F2;
+}
+
+.greyTable td {
+				border-bottom: 1px solid #797979;
+				padding: 10px;
+}
+
+.greyTable td.last {
+				border-bottom: 0;
+}
+
+.greyTable td.spacer {
+				border-bottom: 0;
+				width: 10px;
+				padding: 0;
+}
+
+.yui-skin-sam #codeTableForm.superTable {
+				border: none;
+}
+
+.ratings-block .dialog{}
+.ratings-block .dialog form div.row{margin: 0 0 5px 0;}
+.ratings-block .dialog form div.row input, .ratings-block .dialog form div.row select{width: 150px;}
+.ratings-block .dialog form div.row label{width: 60px;display: inline-block;vertical-align: top;}
+.ratings-block .dialog-edit{}
+.ratings-block .dialog-edit .hd{display: block;border-bottom: 1px solid #999; padding: 0 0 .5em;}
+.ratings-block .dialog-edit .message{display: block;border-bottom: 1px solid #999; padding: 0 0 .5em;}
+.ratings-block .dialog-add .status-block{display: block;}
+.ratings-block .dialog-add .entity-block{display: block;}
+.ratings-block .dialog-add{}
+.ratings-block .dialog-add .message{display: none;}
+.ratings-block .dialog-add .status-block{display: none;}
+.ratings-block .dialog-add .entity-block{display: none;}

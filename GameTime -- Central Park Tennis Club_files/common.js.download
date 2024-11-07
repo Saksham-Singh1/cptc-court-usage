@@ -1,0 +1,793 @@
+var loader;
+var stealthloader;
+var loaderCount = 0;
+var waitSpinner = null;
+
+YAHOO.util.Event.on(window, 'load', function() {
+	clearLocalStorage();
+        var loaderDiv = document.createElement('div');
+	loaderDiv.setAttribute('id', 'globalloader');
+	document.body.appendChild(loaderDiv);
+        
+        
+	loaderConfig = {
+		width: "20em", 
+		effect:{effect:YAHOO.widget.ContainerEffect.FADE,
+		        duration:0.25}, 
+		fixedcenter:true,
+		modal:true,
+	    visible:false,
+		draggable:false,
+		close:false
+	};
+	
+	loaderImg = document.createElement('img');
+	loaderImg.setAttribute('src', '/r/img/core/loader.gif');
+	loaderImg.setAttribute('alt', 'Loading...');
+
+	loader = new YAHOO.widget.SimpleDialog('globalloader', loaderConfig);
+	loader.setHeader('Loading...');
+	loader.setBody(loaderImg);
+	loader.render(document.body);
+	
+	stealthloaderImg = document.createElement('img');
+	stealthloaderImg.setAttribute('src', '/r/img/core/loader.gif');
+	stealthloaderImg.setAttribute('alt', 'Loading...');
+	
+	stealthloader = document.createElement('div');
+	stealthloader.setAttribute('id', 'globalstealthloader');
+	stealthloader.appendChild(stealthloaderImg);
+	document.body.appendChild(stealthloader);
+
+
+       
+       waitSpinner = new YAHOO.widget.Panel("wait",
+			{ 
+			  fixedcenter:true,
+			  close:false,
+			  draggable:false,
+			  zindex:4000,
+			  modal:true,
+			  visible:false
+			}
+		);
+      // YAHOO.gametime.wait.setHeader("Loading...");
+      waitSpinner.setBody("<img src='/r/img/core/loading-spinner.gif'>");
+      waitSpinner.render(document.body);
+
+    adjustMainMenu()
+});
+
+/**
+ * Following code is for IE 8 compatibility
+ */
+if (Object.defineProperty && Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(Element.prototype, "textContent") && 
+        !Object.getOwnPropertyDescriptor(Element.prototype, "textContent").get)
+    (function() {
+        var innerText = Object.getOwnPropertyDescriptor(Element.prototype, "innerText");
+        Object.defineProperty(Element.prototype, "textContent",
+                {// It won't work if you just drop in innerText.get
+                    // and innerText.set or the whole descriptor.
+                    get: function() {
+                        return innerText.get.call(this)
+                    },
+                    set: function(x) {
+                        return innerText.set.call(this, x)
+                    }
+                }
+        );
+    })();
+
+function startLoading()
+{
+	loader.show();
+      
+}
+
+function finishLoading()
+{
+	loader.hide();
+      
+}
+
+function startStealthLoading()
+{
+    if(waitSpinner)
+         waitSpinner.show();
+	/*if(loaderCount == 0) {
+        var animate = new YAHOO.util.Anim('globalstealthloader');
+        animate.attributes.bottom = {from: -20, to: 0};
+        animate.duration = 0.25;
+        animate.animate();
+    }
+    loaderCount++;
+*/
+}
+
+function finishStealthLoading()
+{
+         if(waitSpinner)
+            waitSpinner.hide();
+/*	if(loaderCount > 0) {
+        loaderCount--;
+        if(loaderCount == 0) {
+            var animate = new YAHOO.util.Anim('globalstealthloader');
+            animate.attributes.bottom = {from: 0, to: -20};
+            animate.duration = 0.25;
+            animate.animate();
+        }
+    }
+    */
+}
+
+/**
+ * @author 	Max Mou
+ * @name 	jsMsgBox
+ * @note 	This is a javascript function that used to print the messages
+ * @todo 	CSS, the css breaks the main side border, need to fix this
+ */
+
+function jsMsgBox(type, msg)
+{ 
+	//var max_length = 95;
+	var div_class;
+	switch(type)
+	{
+		case 'fail'   	:div_class = 'message fail';break;
+		case 'success' 	:div_class = 'message success';break;
+		case 'warn' 	:div_class = 'message warn';break;
+                case 'complete' :div_class = 'message happy';break;
+		case 'message'  :
+		case 'notice'  	:div_class = 'message';break;
+                case 'success-new' : div_class = 'message success-new';break;
+		default        	:div_class = 'message';break
+	}
+
+    var msgDiv = document.getElementById('msgbox');
+
+//	if(msgDiv)
+//	{
+//		var msg_short = msg;
+//		if(msg.length > max_length)
+//	    {
+//			msg_short = msg.substr(0,max_length);
+//			msg_short += ' ...more';
+//        }
+
+        var close = '<a href="#" onclick="hideJsMsgBox();return false;">X</a>';
+
+		msgDiv.innerHTML = 
+			'<div class="'+ div_class +'">' +
+			msg + close +
+			'</div>';
+	//}
+	
+}
+
+
+function hideJsMsgBox() {
+    var msgDiv = document.getElementById('msgbox');
+    msgDiv.innerHTML = "";
+}
+
+/* Some utility functions/methods */
+
+
+// Shorten the call to get an Element
+function $(element) {
+    return document.getElementById(element);
+}
+
+// toggle display of element
+function toggle(target, src, displayType){
+
+    target = $(target);
+
+    displayType = displayType || "block";
+
+    if (target.style.display == "none"){
+        target.style.display = displayType;
+        src.classList.remove('toggle-expand');
+        src.classList.add('toggle-collapse');
+    }
+    else {
+        target.style.display = "none";
+        src.classList.remove('toggle-collapse');
+        src.classList.add('toggle-expand');
+    }
+}
+
+var timerID = null;
+
+var timeStringFromSec = function(secs, returnFormat) {
+    var min = Math.floor(secs / 60);
+    var sec = secs % 60;
+    var timeUnit = 'minute';
+        
+    sec = (sec < 10 ? '0' : '') + sec;    
+    if (min < 1)
+        timeUnit = 'second';
+    returnFormat = returnFormat.replace("{{m}}", min);
+    returnFormat = returnFormat.replace("{{s}}", sec);
+    returnFormat = returnFormat.replace("{{t}}", timeUnit);
+    return returnFormat;
+}
+
+var updateCountdown = function(msgContainer, returnFormat, msgFinalExpired, remainingTime, disableElement, updateInterval) {
+    var msg = "";
+    var remainingTime = (remainingTime)?remainingTime:300;
+    var updateInterval = updateInterval?updateInterval:30000;
+    if(remainingTime == 0) {
+        msg = msgFinalExpired;
+        YAHOO.util.Dom.get(msgContainer).innerHTML = msg;
+        clearTimeout(timerID);
+        if (disableElement) {
+            if (typeof deleteTemp != 'undefined')
+                deleteTemp();
+            $(disableElement).disabled = true;
+        }
+        return;
+    } else if(remainingTime <= 30 || updateInterval == 1000){
+        updateInterval = 1000;
+        msg = timeStringFromSec(remainingTime, returnFormat);
+        remainingTime -= 1;
+    }else {
+        msg = timeStringFromSec(remainingTime, returnFormat);
+        remainingTime -= 30;
+    }
+
+    YAHOO.util.Dom.get(msgContainer).innerHTML = msg;
+    timerID = setTimeout("updateCountdown('"+msgContainer+"', '"+returnFormat+"', '"+msgFinalExpired+"', '"+remainingTime+"', '"+disableElement+"', '"+updateInterval+"')", updateInterval);
+}
+
+var changeUrlVar = function(urlVal, urlVar, ignoreVal) {
+    var jsonQS = {};
+    if(window.location.search) {
+        jsonQS = decodeURI(window.location.search)
+        .replace('?', '')
+        .split('&')
+        .map(function(param) {
+            return param.split('=');
+        })
+        .reduce(function(values, currentValue) {
+            values[currentValue[0]] = currentValue[1];
+            return values;
+         }, {});
+    }
+    jsonQS[urlVar] = urlVal;
+                
+    let qs = Object.keys(jsonQS).map(function(key) {
+        if(key != "" && jsonQS[key] != 'undefined' && jsonQS[key] != ignoreVal ) {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(jsonQS[key]);
+        }
+    }).join('&');
+
+    if(qs.indexOf('&') == 0) {
+        qs = qs.substring(1);
+    }
+
+    window.location.href = (window.location.origin + window.location.pathname) + '?' + qs;
+
+    return;
+
+//Change this function as in Laminas we are passing filters in query string
+/*
+    var scndSlashPos, ampersandPos, endUrl='', endHash='';
+    // save the hash value
+    var keepHash = window.location.hash;
+
+    // delete the hash value so we only have a # possibly
+    window.location.hash = '';
+
+    var winLoc = new String(window.location);
+
+    // check if there's a # and remove it
+    if (winLoc.indexOf("#") >= 0)
+        winLoc = winLoc.substring(0, winLoc.length-1);
+
+    // check if there's already a 'urlVar' value in URL (need the slash to prevent finding 'sea' inside 'search'
+    var urlVarPos = winLoc.indexOf(urlVar+'/');
+    if (urlVarPos >= 0) {
+        scndSlashPos = winLoc.indexOf('/',urlVarPos+urlVar.length+1);
+        if (scndSlashPos > 0)
+            endUrl = '/'+winLoc.substring(scndSlashPos+1);
+
+        // replace the string
+        if (urlVal == ignoreVal)
+        {
+            winLoc = winLoc.substring(0, urlVarPos-1);
+        }
+        else
+        {
+            winLoc = winLoc.substring(0, urlVarPos+urlVar.length+1);
+        }
+    } else {
+        // add the string
+        if (urlVal != ignoreVal)
+            winLoc = winLoc+'/'+urlVar+'/';
+    }
+    if (urlVal == ignoreVal)
+        urlVal = '';
+
+    // check if there's already a 'urlVar' value in hash
+    var hashVarPos = keepHash.indexOf(urlVar+'=');
+    if (hashVarPos >= 0) {
+        ampersandPos = keepHash.indexOf('&',hashVarPos+urlVar.length+1);
+        if (ampersandPos > 0)
+        {
+            endHash = '&'+keepHash.substring(ampersandPos+1);
+        }
+
+        // replace the string
+        if (urlVal == ignoreVal)
+        {
+            keepHash = keepHash.substring(0, hashVarPos-1);
+        }
+        else
+        {
+            keepHash = keepHash.substring(0, hashVarPos+urlVar.length+1);
+        }
+        keepHash = keepHash + urlVal + endHash;
+    } else {
+        // add the string
+//        if ((urlVal != ignoreVal) && (keepHash != ""))
+//            keepHash = keepHash+'&'+urlVar+'=';
+    }
+    // remove startIndex so we're back on page 1
+    var startIndexPos = keepHash.indexOf("startIndex");
+    if (startIndexPos >= 0) {
+        ampersandPos = keepHash.indexOf('&',startIndexPos+11);
+        if (ampersandPos > 0)
+        {
+            endHash = '&'+keepHash.substring(ampersandPos+1);
+        }
+        keepHash = keepHash.substring(0, startIndexPos-1);
+        keepHash = keepHash + endHash;
+    }
+
+    window.location = winLoc+urlVal+endUrl+keepHash;
+
+ */
+}
+
+var toggleCheckbox = function(ele, nodes){        
+    YAHOO.util.Event.addListener(ele, 'change', function(e){_toggleCheckbox(e.target, nodes);});
+    YAHOO.util.Event.addListener(nodes, 'change', function(e){_toggleCheckbox(nodes, ele);});                   
+}
+
+var _toggleCheckbox = function(nodes1, nodes2){                
+    var t = false;
+    if(nodes1.length > 1){            
+        t = true;
+        for(var n in nodes1){if(!nodes1[n].checked){t = false;}}
+    }else{
+        t = nodes1.checked;
+    }
+
+    if(nodes2.length > 1)
+        for(var n in nodes2)nodes2[n].checked = t;
+    else
+        nodes2.checked = t;   
+};
+
+// From http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
+Object.keys = Object.keys || (function () {
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !{toString:null}.propertyIsEnumerable("toString"),
+        DontEnums = [
+            'toString',
+            'toLocaleString',
+            'valueOf',
+            'hasOwnProperty',
+            'isPrototypeOf',
+            'propertyIsEnumerable',
+            'constructor'
+        ],
+        DontEnumsLength = DontEnums.length;
+
+    return function (o) {
+        if (typeof o != "object" && typeof o != "function" || o === null)
+            throw new TypeError("Object.keys called on a non-object");
+
+        var result = [];
+        for (var name in o) {
+            if (hasOwnProperty.call(o, name))
+                result.push(name);
+        }
+
+        if (hasDontEnumBug) {
+            for (var i = 0; i < DontEnumsLength; i++) {
+                if (hasOwnProperty.call(o, DontEnums[i]))
+                    result.push(DontEnums[i]);
+            }
+        }
+
+        return result;
+    };
+})();
+
+function padlength(what){
+    var output=(what.toString().length==1)? "0"+what : what;
+    return output;
+}
+
+function displaytime(timeEle, updateSecs, showDate, showTime, hideSecs) {
+    var montharray=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+    serverdate.setSeconds(serverdate.getSeconds()+updateSecs);
+    if (showDate) {
+        var datestring=montharray[serverdate.getMonth()]+" "+padlength(serverdate.getDate())+", "+serverdate.getFullYear();
+        if (showTime)
+            datestring += " ";
+    } else
+        var datestring="";
+    if (showTime) {
+        var hours = serverdate.getHours();
+        var ampm = (hours >= 12) ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        var timestring=hours+":"+padlength(serverdate.getMinutes());
+        if (!hideSecs)
+            timestring += ":"+padlength(serverdate.getSeconds());
+        timestring += " "+ampm;
+    } else
+        timestring = "";
+
+    timeEle.textContent=datestring+timestring;
+}
+
+function editTransactionPanel(transactionId, fee, tax, tax_pt, total, state,payerName,payerID,is_credit_trans,memo,package,basefee) {
+    tax_percent = tax_pt;
+    placeholderNameText = payerName;
+    var tcForm = document.createElement("form");
+    var divLeft = document.createElement("div");
+    divLeft.id = "div-left";
+    divLeft.className = "div-left";
+    tcForm.appendChild(divLeft);
+    var tid = document.createElement("input");
+    tid.setAttribute("type", "hidden");
+    tid.id = "tid";
+    tid.name = "tid";
+    tid.setAttribute('value', transactionId);
+    divLeft.appendChild(tid);
+
+    //test
+    //var uid = document.createElement("input");
+    //uid.setAttribute("type", "hidden");
+    //uid.id = "uid";
+    //uid.name = "uid";
+    //uid.setAttribute('value','<?php // echo $this->target_uid?>');
+    //tcForm.appendChild(uid);
+    //test
+
+    var feeInput = document.createElement("input");
+    feeInput.id = "feeInput";
+    feeInput.name = "feeInput";
+    feeInput.setAttribute('value', fee);
+    divLeft.appendChild(document.createTextNode("Fee:  $ "));
+    divLeft.appendChild(feeInput);
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createElement("br"));
+
+    var taxInput = document.createElement("input");
+    taxInput.id = "taxInput";
+    taxInput.name = "taxInput";
+    taxInput.setAttribute('value', tax);
+    divLeft.appendChild(document.createTextNode("Tax:  $ "));
+    divLeft.appendChild(taxInput);
+
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createElement("br"));
+
+    var totalInput = document.createElement("input");
+    totalInput.id = "totalInput";
+    totalInput.name = "totalInput";
+    totalInput.setAttribute('value', total);
+    divLeft.appendChild(document.createTextNode("Total $ "));
+    divLeft.appendChild(totalInput);
+
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createElement("br"));
+
+    var payeeHidden = document.createElement("input");
+    payeeHidden.setAttribute("type","hidden");
+    payeeHidden.id = "payee_id";
+    payeeHidden.name = "payee_id";
+    payeeHidden.setAttribute('value', payerID);
+    divLeft.appendChild(payeeHidden);
+
+    var isCreditHidden = document.createElement("input");
+    isCreditHidden.setAttribute("type","hidden");
+    isCreditHidden.id = "is_credit";
+    isCreditHidden.name = "is_credit";
+    isCreditHidden.setAttribute('value', is_credit_trans);
+    divLeft.appendChild(isCreditHidden);
+
+    var payeeInput = document.createElement("input");
+    //payeeInput.setAttribute("class","placeHolder");
+    payeeInput.setAttribute("style","vertical-align: middle; width: 14em;");
+    payeeInput.id = "payeeInput";
+    payeeInput.name = "payeeInput";
+    payeeInput.setAttribute('value', placeholderNameText);
+    divLeft.appendChild(document.createTextNode("Payer: "));
+    divLeft.appendChild(payeeInput);
+    var div = document.createElement("div");
+    div.id="containerBilling";
+    div.name = "containerBilling";
+    divLeft.appendChild(div);
+
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createElement("br"));
+    var stateRadio0 = document.createElement("input");
+    stateRadio0.type = "radio";
+    stateRadio0.name = "state";
+    stateRadio0.id = "state0";
+    stateRadio0.setAttribute('value','PENDING');
+    divLeft.appendChild(stateRadio0);
+    divLeft.appendChild(document.createTextNode("Pending     "));
+
+    var stateRadio1 = document.createElement("input");
+    stateRadio1.type = "radio";
+    stateRadio1.name = "state";
+    stateRadio1.id = "state1";
+    stateRadio1.setAttribute('value', 'COMPLETED');
+    divLeft.appendChild(stateRadio1);
+    divLeft.appendChild(document.createTextNode("Completed"));
+    //prefill radio button
+    (state == 'completed') ? stateRadio1.setAttribute('checked', 'checked')  : stateRadio0.setAttribute('checked', 'checked');
+
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createElement("br"));
+    divLeft.appendChild(document.createTextNode("Memo:"));
+    var memoText = document.createElement("textarea");
+    memoText.id = "memoText";
+    memoText.name = "memoText";
+    memoText.cols = "30";
+    memoText.rows = "5";
+    memoText.innerHTML = memo;
+    divLeft.appendChild(memoText);
+
+    transactionDialog_edit.setBody(tcForm);
+    if (is_credit_trans)
+        transactionDialog_edit.setHeader("Edit Credit Transaction");
+    else
+        transactionDialog_edit.setHeader("Edit Transaction");
+    transactionDialog_edit.render(document.body);
+    document.getElementById('transactionDialog_edit').style.width = '310px';
+    transactionDialog_edit.show();
+    rosterBilling.attach("payee_id","payeeInput", "containerBilling", "/roster/filter?bill=account", true,undefined,null,null,null,true);
+    YAHOO.util.Event.addListener($("payeeInput"), 'focus', focusNameInput, $("payeeInput"));
+    YAHOO.util.Event.addListener($("payeeInput"), 'blur', unfocusNameInput, $("payeeInput"));
+    $("payeeInput").classList.remove('placeholder');
+    document.getElementById('feeInput').focus();
+
+    YAHOO.util.Event.addListener($("feeInput"), 'blur', formatCurrency1);
+    YAHOO.util.Event.addListener($("taxInput"), 'blur', formatCurrency1);
+    if(package){
+        var divRight = document.createElement("div");
+        divRight.id = 'div-right';
+        divRight.className = 'div-right';
+        divRight.style.display = 'none';
+        tcForm.appendChild(divRight);
+
+        var spanname = document.createElement('span');
+        spanname.innerHTML = "Packages : "
+        divRight.appendChild(spanname);
+        var sessionsDeducted = document.createElement("input");
+        sessionsDeducted.setAttribute("type","hidden");
+        sessionsDeducted.id = "sessionsDeducted";
+        sessionsDeducted.name = "sessionsDeducted";
+        divRight.appendChild(sessionsDeducted);
+
+        var ptid = document.createElement("input");
+        ptid.setAttribute("type","hidden");
+        ptid.id = "ptid";
+        ptid.name = "ptid";
+        divRight.appendChild(ptid);
+
+        var pmodule = document.createElement("input");
+        pmodule.setAttribute("type","hidden");
+        pmodule.id = "pmodule";
+        pmodule.name = "pmodule";
+        divRight.appendChild(pmodule);
+        for(var i=0; i<package.length; i++){
+            divRight.appendChild(document.createElement("br"));
+            var packagesRadio = document.createElement("input");
+            packagesRadio.type = "radio";
+            packagesRadio.name = "packages";
+            packagesRadio.id = "packagesRadio"+i;
+            packagesRadio.className = 'packagesRadio';
+            packagesRadio.setAttribute('value', package[i]['ptid']);
+            packagesRadio.setAttribute("onclick", 'passSessions('+package[i]['sessionsToBeDeducted']+','+i+','+package[i]['ptid']+',"'+package[i]['module']+'");')
+            divRight.appendChild(packagesRadio);
+            var packageLabel1 = document.createElement('label');
+            packageLabel1.setAttribute('for',"packagesRadio"+i);
+            packageLabel1.innerHTML = package[i]['name']+"  ("+package[i]['remainingSessions']+" out of "+package[i]['totalSessions']+") ";
+            divRight.appendChild(packageLabel1);
+            var packageLabel2 = document.createElement('label');
+            packageLabel2.setAttribute('for',"packagesRadio"+i);
+            packageLabel2.className = "remaining-package";
+            packageLabel2.innerHTML = package[i]['sessionsToBeDeducted']+" session(s) will be deducted";
+            divRight.appendChild(packageLabel2);
+        }
+
+        YAHOO.util.Event.addListener($("state1"), 'click', function(e){
+            document.getElementById('feeInput').value = '0.00';
+            document.getElementById('taxInput').value = '0.00';
+            document.getElementById('totalInput').value = '0.00';
+            if(state !='completed'){
+                document.getElementById('transactionDialog_edit').style.width = '700px';
+                document.getElementById('div-right').style.display = 'block';
+            }
+        }); 
+        document.getElementById('transactionDialog_edit').style.width = '310px';
+        YAHOO.util.Event.addListener($("state0"), 'click', function(e){
+            document.getElementById('feeInput').value = basefee.fee;
+            document.getElementById('taxInput').value = basefee.tax;
+            document.getElementById('totalInput').value = basefee.amount;
+            document.getElementById('ptid').value = basefee.ptid;
+            for(var i=0; i<package.length; i++){
+                if(basefee.ptid == package[i].ptid){
+                    document.getElementById('sessionsDeducted').value = package[i].sessionsToBeDeducted;
+                    document.getElementById('pmodule').value = package[i].module;
+                }
+            }
+            document.getElementById('transactionDialog_edit').style.width = '310px';
+            document.getElementById('div-right').style.display = 'none';
+        });
+
+    }
+}//editTransactionPanel
+var handleAjaxAuthFailure = {
+    failure: function(eventType,args) {
+        var status = args[0].conn.status;
+        if(status=="401") {
+            window.location = baseUrl;
+        }
+    }
+}
+function passSessions(sessionsToBeDeducted,i,ptid,module){
+    var hiddenInput = document.getElementById('sessionsDeducted');
+    hiddenInput.setAttribute('value', sessionsToBeDeducted);
+    var ptidhidden = document.getElementById('ptid');
+    ptidhidden.setAttribute('value', ptid);
+    var pmodulehidden = document.getElementById('pmodule');
+    pmodulehidden.setAttribute('value', module);
+}
+YAHOO.util.Connect.completeEvent.subscribe(handleAjaxAuthFailure.failure, handleAjaxAuthFailure);
+
+var switchLocation = function(newLocationId) {
+    var currentURL = location.href;
+    var urlArray = currentURL.split('/');
+    urlArray[3] = newLocationId;
+    currentURL = urlArray.join('/'); 
+    location.href = currentURL;
+} 
+ function switchURLFromDropDown(url,param) {
+     location.href = url+"?"+param;
+ }
+ function showHint(id) {
+    var element = document.getElementById(id);
+    element.style.display = 'block';
+    var parNode = element.parentNode;
+    var a = parNode.getElementsByTagName('a');
+    var pos = YAHOO.util.Dom.getXY(a[0]);
+    pos[0] += 18;
+    pos[1] -= 8;
+    if (element.lastElementChild.id != 'helpNoteClose') {
+        span = document.createElement('span');
+        span.innerHTML = 'x';
+        span.setAttribute('onclick', 'hideHint("' + id + '")');
+        span.setAttribute('title', 'Close');
+        span.id = 'helpNoteClose';
+        span.setAttribute('style', 'position: absolute;right: 5px;top: 1px;cursor:pointer;color:red;');
+        element.appendChild(span);
+    }
+        YAHOO.util.Dom.setXY(id,pos);
+    }
+    function hideHint(id) {
+        setTimeout("actuallyHideHint('" + id + "')", 100);
+    }
+    function actuallyHideHint(id) {
+        var hint = document.getElementById(id);
+        hint.style.display = 'none';
+    }
+    
+    function clearLocalStorage() {
+        if (document.referrer.indexOf('auth') > 0 || document.referrer =='') {
+            //old date for therapy
+            localStorage.removeItem('oldDate');
+        }
+    }
+    
+    
+    function refreshSession(seconds)
+    {
+        var time = seconds * 1000; 
+        setTimeout(
+            function ()
+            {
+                YAHOO.util.Connect.asyncRequest('GET',  '/', { success:  function() { refreshSession(seconds); }  });  
+           
+            },
+            time
+        );
+    };
+
+function adjustMainMenu() {
+    const menuItems = document.querySelector('#green_nav ul');
+    if (menuItems) {
+        menuItems.style.opacity = 1;
+    }
+    
+    var bodyElement = document.body;
+    var bodyClass = bodyElement.className;
+    
+    const parser = new DOMParser()
+    const gDropdown = document.querySelector('#green_nav ul .dropdown')
+    const gddItems = Array.from(document.querySelectorAll('#green_nav ul .dropdown .menuitem'))
+
+    gddItems.forEach(
+        function(gddItem) {
+            gddItem.remove();
+    })
+
+    if (gDropdown != undefined && gDropdown.children && gDropdown.children.length > 0) {
+        Array.from(gDropdown.children).forEach(function(child){gDropdown.parentElement.appendChild(child)})
+        gDropdown.remove()
+    }
+    let $items;
+    const mainMenu = document.querySelector('#green_nav ul')
+    if(mainMenu){
+        $items = mainMenu.querySelectorAll('li')
+    }
+    let $dropdown;
+    $dropdown = parser.parseFromString('<ul class="dropdown"></ul>', 'text/html').body.firstChild
+    
+    if($items){
+        for (var i = $items.length; i--;) {
+            let $this = $items[i]
+            if ($this.offsetTop > ($items[0]).offsetTop || $dropdown.offsetTop > ($items[0]).offsetTop) {
+                $dropdown.insertBefore($this, $dropdown.firstChild)
+            } else {
+                if (bodyClass.includes('wide_theme')) {
+                    if (bodyClass.includes('wide_theme') && $items.length > 7) {
+                        $dropdown.insertBefore($this, $dropdown.firstChild)
+                    }
+                }else if(bodyClass.includes('default_theme')){
+                    if (bodyClass.includes('wide_theme') && $items.length > 6) {
+                        $dropdown.insertBefore($this, $dropdown.firstChild)
+                    }
+                }
+                i = 0
+        }
+        }
+
+        if ($dropdown.children.length) {
+            let moreMenuItem;
+            if (bodyClass.includes('wide_theme')) {
+                moreMenuItem = parser.parseFromString('<li id="gDDCnt" class="menuitem">&#9660;</li>', 'text/html').body.firstChild
+            }else if(bodyClass.includes('default_theme')){
+                moreMenuItem = parser.parseFromString('<li id="gDDCnt" class="menuitem" style="background-color:#9EBD58" >&#9660;</li>', 'text/html').body.firstChild
+            }
+
+            moreMenuItem.appendChild($dropdown)
+            mainMenu.appendChild(moreMenuItem)
+        }
+    }
+}
+function appendQueryParametersToURL(params){
+    location.href = (window.location.origin + window.location.pathname)+"?"+params;
+}
+function getCookie(name)
+{
+	var cookies = document.cookie;
+	if (cookies.indexOf(name) != -1){
+		var startpos = (cookies.indexOf(name))+(name.length)+1;
+		var endpos = cookies.indexOf(";",startpos);
+		if (endpos == -1) endpos = cookies.length;
+		return unescape(cookies.substring(startpos,endpos));
+	}
+	else{
+		return false;
+	}
+}
